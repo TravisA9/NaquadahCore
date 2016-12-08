@@ -8,9 +8,9 @@ using ImageMagick, Images
 include("DomUtilities.jl")
 # include("TagDefaults.jl")
 
-defaultPage = "file:///SamplePages/Landing.json"
+defaultPage = "file:///src/SamplePages/Landing.json"
 global PATH = pwd() * "/data/"
-global PAGES = "file://.julia/v0.5/NaquadahBrowser/src/SamplePages/Naquadah.json"
+#global PAGES = "file://.julia/v0.5/NaquadahBrowser/src/SamplePages/Naquadah.json"
 
 
 # ======================================================================================

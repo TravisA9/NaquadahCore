@@ -1,12 +1,13 @@
 # ======================================================================================
 # Print out Element's DOM but not children
-# CALLED FROM: 
+# CALLED FROM:
 # ======================================================================================
 function printDict(DOM)
 
     dict = copy(DOM)
-    dict["nodes"] = "[...]"
-    #contents = []
+    if haskey(dict, "nodes")
+        dict["nodes"] = "[...]"
+    end
 
        keyList = sort(collect(keys(dict)))
        str, key, value = "","",""

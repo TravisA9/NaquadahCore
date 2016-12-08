@@ -1,9 +1,13 @@
+module NaquadahDOM
 import Base
 using Gtk, JSON, Cairo, Requests
 using Gtk.ShortNames
 using ImageMagick, Images
-# defaultPage = "https://travisa9.github.io/NaquadahBrowser/src/SamplePages/Naquadah.json"
-# defaultPage = "file:///.julia/v0.5/NaquadahBrowser/src/SamplePages/Landing.json"
+
+#include("BuildDefaultNode.jl")
+include("DomUtilities.jl")
+# include("TagDefaults.jl")
+
 defaultPage = "file:///SamplePages/Landing.json"
 global PATH = pwd() * "/data/"
 global PAGES = "file://.julia/v0.5/NaquadahBrowser/src/SamplePages/Naquadah.json"
@@ -174,3 +178,4 @@ end
 # ======================================================================================
 #
 # ======================================================================================
+end # module

@@ -1,39 +1,61 @@
-# include("GeomTypes.jl")
+include("GeomTypes.jl")
 
-
+# ==============================================================================
 # This returns a temporary BoxElement with offset applied
 # and Nullables instantiated.
-function getTempBox(box::BoxElement)
-    offset  = get(box.offset, Point(0,0))
+function getReal(box::Element)
+    return (  get(box.shape.padding, BoxOutline(0,0,0,0,0,0)),
+              get(box.shape.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0])),
+              get(box.margin,  BoxOutline(0,0,0,0,0,0))    )
+end # padding, border, margin
 
-    return TempElement(
-                    box.left   + offset.x,
-                    box.top    + offset.y,
-                    box.width  + offset.x,
-                    box.height + offset.y,
-                    get(box.padding, BoxOutline(0,0,0,0,0,0)),
-                    get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0])),
-                    get(box.margin,  BoxOutline(0,0,0,0,0,0)),
-                    offset
-                )
+function getBorderBox(box::Shape, border, margin)
+    return ( box.left   - border.left + margin.left,
+             box.top    - border.top  + margin.top,
+             box.width  + border.right,
+             box.height + border.bottom )
 end
-
-function getBorderBox(B::TempElement)
-    return ( B.left - B.border.left + B.margin.left,
-             B.top - B.border.top + B.margin.top,
-             B.width + B.border.right,
-             B.height + B.border.bottom )
+function getContentBox(box::Shape, padding, border, margin)
+    return ( box.left   + border.left   + padding.left + margin.left   ,
+             box.top    + border.top    + padding.top  + margin.top    ,
+             box.width  - border.width  - padding.width,
+             box.height - border.height - padding.height )
 end
-
-
-function getContentBox(B::TempElement)
-    return ( B.left   + B.border.left   + B.padding.left + B.margin.left   ,
-             B.top    + B.border.top    + B.padding.top + B.margin.top    ,
-             B.width  - B.border.width  - B.padding.width,
-             B.height - B.border.height - B.padding.height )
+function getMarginBox(box::Shape, border, margin)
+    return ( box.left, box.top,
+             box.width  + border.width  + margin.width ,
+             box.height + border.height + margin.height )
 end
-function getMarginBox(B::TempElement)
-    return ( B.left, B.top,
-             B.width  + B.border.width  + B.margin.width ,
-             B.height + B.border.height + B.margin.height )
+# ==============================================================================
+function topLeft(box::Element)
+    offset = get(box.offset,Point(0,0))
+     return Point(box.left + offset.x, box.top + offset.y)
+ end
+function bottomRight(box::Element)
+    offset = get(box.offset,Point(0,0))
+     return Point(box.right + offset.x, box.bottom + offset.y)
+ end
+# function Border(box::BoxElement,padding,border,margin)
+#     return box.width + padding.left + padding.right + border.left + border.right + margin.left + margin.right
+# end
+
+function TotalShapeWidth(box::Element,border,margin)
+    return box.width + margin.width + border.width
+end
+function TotalShapeHeight(box::Element,border,margin)
+    return box.height + border.height + margin.height
+end
+function topLeft(circle::Circle)
+     return Point(origin.x - radius, origin.y - radius)
+end
+function bottomRight(circle::Circle)
+    return Point(origin.x + radius, origin.y + radius)
+end
+function TotalShapeWidth(circle::Circle,padding,border,margin)
+    width = radius*2
+    return width + padding.left + padding.right + border.left + border.right + margin.left + margin.right
+end
+function TotalShapeHeight(circle::Circle,padding,border,margin)
+    height = radius*2
+    return height + padding.top + padding.bottom + border.top + border.bottom + margin.top + margin.bottom
 end

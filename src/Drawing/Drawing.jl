@@ -1,32 +1,121 @@
-using Gtk.ShortNames, Graphics, Cairo
-include("GeomTypes.jl")
-include("GeoMethods.jl")
-c = @Canvas()
-win = @Window("Canvas", 800, 600)
-push!(win, c)
 
+# c = @Canvas()
+# win = @Window("Canvas", 800, 600)
+# push!(win, c)
+
+module Naquadraw
+using Graphics, Cairo, Gtk.ShortNames
+
+  include("Flags.jl")
+  include("GeomTypes.jl")
+  include("GeoMethods.jl")
+
+export
+          # container for shapes:
+          Element,
+          # General utility:
+          Point, BoxOutline
+          # Shapes:
+          Border, Box, Circle, Arc, Text,
+
+
+          # get real data (margin, padding, border) instead of Nullables
+          getReal,
+          # get calculated metrics
+          getBorderBox, getContentBox, getMarginBox,
+          TotalShapeWidth, TotalShapeHeight
+# ======================================================================================
+#function clip(ctx::CairoContext, path)
+# ======================================================================================
+#
+# CALLED FROM:
+# ======================================================================================
+function DrawCircle(ctx::CairoContext, circle::Shape)
+    border = get(circle.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+    margin = get(circle.margin,  BoxOutline(0,0,0,0,0,0))
+
+              radius = circle.radius + border.width
+              l,t = circle.origin.x + margin.left + radius, circle.origin.y + margin.top + radius
+set_antialias(ctx,6)
+          set_source_rgb( ctx, circle.color...)
+                  move_to(ctx, l, t)
+                  arc(ctx, l, t, radius, 0, 2*pi);
+                  fill(ctx);
+                  # fill_preserve(ctx);
+          set_source_rgb( ctx, border.color...)
+                  arc(ctx, l, t, radius, 0, 2*pi);
+
+                  set_line_width(ctx, border.top);
+                  stroke(ctx);
+          end
 
 #======================================================================================#
 # TODO: see if curveTo() will work to simplify this.
 #======================================================================================#
-function RoudedBox(ctx::CairoContext,B::TempElement)
-    # B = getTempBox(box)
-    border = getBorderBox(B)
+function DrawBox(ctx::CairoContext, box::Box)
+    border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+    margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
+    l,t,w,h = getBorderBox(box, border, margin)
+    r, b = l+w, t+h
+    borderWidth = max(border.left,border.top,border.right,border.bottom)
 
-     # rectangle(ctx, border...)
-     # set_source_rgb(ctx, .7, .3, .7)
-     # stroke(ctx);
+    if box.flags[BordersSame] == true
+        rectangle(ctx,l,t,w,h )
+        set_source_rgb(ctx, box.color...)
+        fill(ctx);
 
+        set_source_rgb(ctx, border.color...)
+        set_line_width(ctx, border.left);
+        rectangle(ctx,l,t,w,h )
+        stroke(ctx);
+    else
+          rectangle(ctx,l,t,w,h )
+          clip(ctx)
 
-    set_antialias(ctx,6)
-      l, t, w, h = border
-                    # l = border.left   # minus 1 while the sides are being
-                    # t = border.top     # expanded by antialias-ing
-                    # h = border.height
-                    # w = border.width
+                line = (borderWidth/2)
+                t -= (line - border.top)
+                l -= (line - border.left)
+                r -= (border.right - line)
+                b -= (border.bottom - line)
+                rectangle(ctx,l,t,w,h )
+                set_source_rgb(ctx, box.color...)
+          		fill_preserve(ctx);
 
-                    borderWidth = B.border.top # [1]
- radius = get(B.border.radius,[0,0,0,0])
+          	    # Borders...
+                set_source_rgb(ctx, border.color...)
+          		set_line_width(ctx, borderWidth);
+          		stroke(ctx);
+          		set_antialias(ctx,1)
+          reset_clip(ctx)
+      end
+end
+
+#======================================================================================#
+# TODO: see if curveTo() will work to simplify this.
+#======================================================================================#
+function DrawRoudedBox(ctx::CairoContext, box::Box)
+    border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+    margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
+    l,t,w,h = getBorderBox(box, border, margin)
+    r, b = l+w, t+h
+    set_antialias(ctx,1)
+    set_source_rgb(ctx, 0,0,0)
+    rectangle(ctx,
+             # box.left   + margin.left -1,
+             # box.top    + margin.top  -1,
+             # box.width  + 3,
+             # box.height + 3 )
+
+    l-1,t-1,w+3,h+3 )
+    set_line_width(ctx, 1);
+    stroke(ctx);
+
+        set_antialias(ctx,6)
+#getBorderBox(box::Shape, border, margin)
+borderWidth = max(border.left,border.top,border.right,border.bottom)
+
+                    # borderWidth = border.top # TODO: find the thickest and use it, then clip off any excess.
+ radius = get(border.radius,[0,0,0,0])
                     TR = radius[1]
                     BR = radius[2]
                     BL = radius[3]
@@ -37,111 +126,87 @@ function RoudedBox(ctx::CairoContext,B::TempElement)
         rotThree = 180 * degrees
         rotFour = 270 * degrees
 
+
+
+
+        new_sub_path(ctx);
+ 		arc(ctx, r - TR, t + TR, TR,     rotOne,    0);    # topRight
+ 		arc(ctx, r - BR, b - BR, BR, 0,         rotTwo); # bottomRight
+ 		arc(ctx, l + BL, b - BL, BL,     rotTwo,    rotThree);   # bottomLeft
+ 		arc(ctx, l + TL, t + TL, TL,         rotThree,  rotFour);      # topLeft
+ 		close_path(ctx);
+
+clip(ctx)
+# border.left, border.top, border.right, border.bottom
+line = (borderWidth/2)
+t -= (line - border.top)
+l -= (line - border.left)
+r -= (border.right - line)
+b -= (border.bottom - line)
 		new_sub_path(ctx);
-		arc(ctx, l + w - TR, t + TR, TR,     rotOne,    0);    # topRight
-		arc(ctx, l + w - BR, t + h - BR, BR, 0,         rotTwo); # bottomRight
-		arc(ctx, l + BL, t + h - BL, BL,     rotTwo,    rotThree);   # bottomLeft
+		arc(ctx, r - TR, t + TR, TR,     rotOne,    0);    # topRight
+		arc(ctx, r - BR, b - BR, BR, 0,         rotTwo); # bottomRight
+		arc(ctx, l + BL, b - BL, BL,     rotTwo,    rotThree);   # bottomLeft
 		arc(ctx, l + TL, t + TL, TL,         rotThree,  rotFour);      # topLeft
 		close_path(ctx);
 
-        set_source_rgb(ctx, B.border.color...)
 		# setcolor( cr, box.color...)
-      # fill(cr);
-		#fill_preserve(cr);
+      #fill(ctx);
+      set_source_rgb(ctx, box.color...)
+		fill_preserve(ctx);
 
 		# Borders...
-
+    set_source_rgb(ctx, border.color...)
 			set_line_width(ctx, borderWidth);
 			stroke(ctx);
 			set_antialias(ctx,1)
-
+reset_clip(ctx)
 end
+
 #======================================================================================#
 
 
-function DrawElement(ctx, box::BoxElement)
-    B = getTempBox(box)
+function DrawElement(ctx, element::Element)
+     padding, border, margin = getReal(element)
+     box = element.shape
 
     select_font_face(ctx, "Sans", Cairo.FONT_SLANT_NORMAL, Cairo.FONT_WEIGHT_NORMAL);
     set_font_size(ctx, 10.0);
     set_line_width(ctx, 1);
-# Offset
-    rectangle(ctx, box.left,
-                   box.top,
-                   box.width + B.border.width + B.margin.width,
-                   box.height + B.border.height + B.margin.height  )
-    set_source_rgb(ctx, 1, 0, 0)
-    stroke(ctx);
-    move_to(ctx,box.left+1 ,box.top+11);
-    set_source_rgb(ctx, 0,0,0);
-    show_text(ctx,"Offset from here.");
 
-    # Margin
-    if !isnull(box.margin)
-        rectangle(ctx, getMarginBox(B)... )
+
+    # Margin...............................................
+        rectangle(ctx, getMarginBox(box, border, margin)... )
         set_source_rgba(ctx, .8, .5, .5, 0.5)
         fill(ctx)
-        move_to(ctx, B.left,  B.top + 10);
+        move_to(ctx, box.left,  box.top + 10);
         set_source_rgb(ctx, 0,0,0);
         show_text(ctx,"Margin");
-    end
+    # Elemet....................................................
+        RoudedBox(ctx, element, border, getBorderBox(box, border, margin)... )
 
-    # Border
-    if !isnull(box.border)
-        rectangle(ctx, getBorderBox(B)...)
-        set_source_rgb(ctx, .5, .5, .5)
-        fill(ctx)
-    end
-if !isnull(box.padding)
-    move_to(ctx, B.left + B.border.left + B.margin.left,
-                 B.top + B.border.top + B.margin.top + 10 );
+    # Border...............................................
+        #rectangle(ctx, getBorderBox(box, border, margin)...)
+        #set_source_rgb(ctx, .5, .5, .5)
+        #fill(ctx)
+    # Padding...............................................
+    move_to(ctx, box.left + border.left + margin.left,
+                 box.top + border.top + margin.top + 10 );
     set_source_rgb(ctx, 0,0,0);
     show_text(ctx,"Padding");
-end
+
 # Content
-    rectangle(ctx, getContentBox(B)...)
-    set_source_rgb(ctx, .3, .3, .3)
+    rectangle(ctx, getContentBox(box, padding, border, margin)...)
+    set_source_rgb(ctx, .7, .7, .7)
     fill(ctx)
-    move_to(ctx, B.left + B.border.left + B.padding.left + B.margin.left,
-                 B.top + B.border.top + B.padding.top + B.margin.top + 10 );
+    move_to(ctx, box.left + border.left + padding.left + margin.left,
+                 box.top + border.top + padding.top + margin.top + 10 );
     set_source_rgb(ctx, 0,0,0);
     show_text(ctx,"Content");
 
-    # Border
-    if !isnull(box.border)
-        RoudedBox(ctx, B)
-        # rectangle(ctx, getBorderBox(B)...)
-        # set_source_rgb(ctx, .7, .3, .7)
-        # stroke(ctx);
-    end
-
 end
 
+export DrawElement, RoudedBox
 
-# ==============================================================================
-@guarded draw(c) do widget
-
-    ctx = getgc(c)
-    h = height(c)
-    w = width(c)
-    set_antialias(ctx,1)
-    # BoxElement(flags,left,top,width,height, color,opacity,padding,border,margin,offset)
-    MyElement = BoxElement( falses(64), 100, 100, 250, 200,
-                            [.5,.5,.5], 1,
-                            BoxOutline(10,10,10,10,20,20),
-                            Border(1,1,1,1,2,2, 0,[.0,.3,.6],[7,7,7,7]), #WAS: BoxOutline(1,1,1,1,2,2),
-                            BoxOutline(10,20,8,3,18,23),
-                            Point(30,40)  )
-
-DrawElement(ctx, MyElement)
-    println(MyElement)
-    # Paint red rectangle
-    # rectangle(ctx, 0, 0, w, h/2)
-    # set_source_rgb(ctx, 1, 0, 0)
-    # fill(ctx)
-    # Paint blue rectangle
-    # rectangle(ctx, 0, 3h/4, w, h/4)
-    # set_source_rgb(ctx, 0, 0, 1)
-    # fill(ctx)
-end
-show(c)
+#end
+end # module

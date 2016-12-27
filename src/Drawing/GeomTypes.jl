@@ -1,8 +1,9 @@
-using Colors
+
+
+
 
 abstract Geo
-# abstract Plane <: Geo
-
+#-------------------------------------------------------------------------------
 type Point <: Geo
     x::Float32
     y::Float32
@@ -16,8 +17,7 @@ type BoxOutline <: Geo
     width::Float32
     height::Float32
 end
-
-type Box <: Geo
+type Square <: Geo
     left::Float32
     top::Float32
     width::Float32
@@ -39,100 +39,69 @@ type Border <: Geo
     radius::Nullable{Array}
     Border(left,top, right,bottom, width,height, style,color,radius) = new(left,top, right,bottom, width,height, style,color,radius)
 end
-type BoxElement <: Shape
+# ==============================================================================  <: Shape
+type Element <: Geo
     flags::BitArray{1}
-    left::Float32
-    top::Float32
-    width::Float32
-    height::Float32
-
+    shape::Shape
     color::Array
     opacity::Float32
-
-    padding::Nullable{BoxOutline}
-    border::Nullable{Border}
     margin::Nullable{BoxOutline}
     offset::Nullable{Point}
-
-    BoxElement() = new( falses(64),  0,0,0,0, [], Nullable{BoxOutline}(),
-                        Nullable{Border}(),
-                        Nullable{BoxOutline}(), Nullable{Point}()
-                       )
-    BoxElement(flags,left,top,width,height,color,opacity,padding,border,margin,offset) =
-              new(flags,left,top,width,height,color,opacity,padding,border,margin,offset)
+    #BoxElement(shape::Shape) = new( falses(64), shape, [], 1, Nullable{BoxOutline}(), Nullable{Point}() )
+    function  Element(shape)
+      return new( falses(64), shape, [], 1, Nullable{BoxOutline}(), Nullable{Point}() )
+    end
 end
-
-type TempElement <: Shape
+# ==============================================================================
+type Box <: Shape
+    flags::BitArray{1}
+    color::Array
+    opacity::Float32
+    margin::Nullable{BoxOutline}
+    offset::Nullable{Point}
+    #----------------------------
     left::Float32
     top::Float32
     width::Float32
     height::Float32
-    padding::BoxOutline
-    border::Border
-    margin::BoxOutline
-    offset::Point
-    TempElement() = new(0,0,0,0, BoxOutline(), Border(), BoxOutline(), Point())
-    TempElement(left,top,width,height,padding,border,margin,offset) =  new(left,top,width,height,padding,border,margin,offset)
+    padding::Nullable{BoxOutline}
+    border::Nullable{Border}
+    Box() = new(
+    # Generic node data
+    falses(64), [], 1, Nullable{BoxOutline}(), Nullable{Point}(),
+    # Shape data
+    0,0,0,0, Nullable{BoxOutline}(), Nullable{Border}())
 end
 
-function topLeft(box::BoxElement)
-    offset = get(box.offset,Point(0,0))
-     return Point(box.left + offset.x, box.top + offset.y)
- end
-function bottomRight(box::BoxElement)
-    offset = get(box.offset,Point(0,0))
-     return Point(box.right + offset.x, box.bottom + offset.y)
- end
- function Border(box::BoxElement,padding,border,margin)
-     return box.width + padding.left + padding.right + border.left + border.right + margin.left + margin.right
- end
-function TotalShapeWidth(box::BoxElement,padding,border,margin)
-    return box.width + margin.width + border.width
-end
-function TotalShapeHeight(box::BoxElement,padding,border,margin)
-    return box.height + border.height + margin.height
-end
 type Circle <: Shape
-    origin::Point
-    radius::Float32
-end
-type CircleElement <: Shape
-    radius::Float32
-    origin::Point
-    padding::Nullable{BoxOutline}
-    border::Nullable{BoxOutline}
+    flags::BitArray{1}
+    color::Array
+    opacity::Float32
     margin::Nullable{BoxOutline}
-    offset::Point
-end
-function topLeft(circle::Circle)
-     return Point(origin.x - radius, origin.y - radius)
-end
-function bottomRight(circle::Circle)
-    return Point(origin.x + radius, origin.y + radius)
-end
-function TotalShapeWidth(circle::Circle,padding,border,margin)
-    width = radius*2
-    return width + padding.left + padding.right + border.left + border.right + margin.left + margin.right
-end
-function TotalShapeHeight(circle::Circle,padding,border,margin)
-    height = radius*2
-    return height + padding.top + padding.bottom + border.top + border.bottom + margin.top + margin.bottom
+    offset::Nullable{Point}
+    #----------------------------
+    radius::Float32
+    origin::Point
+    border::Nullable{Border}
+      Circle() = new(
+      # Generic node data
+      falses(64), [], 1, Nullable{BoxOutline}(), Nullable{Point}(),
+      # Shape data
+      0, Point(0,0), Nullable{Border}())
 end
 
 type Arc <: Shape
-    origin::Point
-    radius::Float32
-    startAngle::Float32
-    stopAngle::Float32
-end
-type ArcElement <: Shape
     radius::Float32
     origin::Point
     startAngle::Float32
     stopAngle::Float32
-    padding::Nullable{BoxOutline}
-    border::Nullable{BoxOutline}
-    borderColor::Nullable{Array{Float32}}
-    margin::Nullable{BoxOutline}
-    offset::Point
+    # border::Nullable{BoxOutline}
+    Arc() = new( 0, Point(0,0), 0,0)
 end
+type Text <: Shape
+    text::String
+    height::Float32
+end
+#==============================================================================#
+
+#==============================================================================#

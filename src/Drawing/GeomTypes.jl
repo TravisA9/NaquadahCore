@@ -1,12 +1,19 @@
 
 
-
+export
+          # container for shapes:
+          Element,
+          # General utility:
+          Point, BoxOutline, Square,
+          # Shapes:
+          Border, NBox, Circle, Arc, NText
 
 abstract Geo
 #-------------------------------------------------------------------------------
 type Point <: Geo
     x::Float32
     y::Float32
+    Point(x,y) = new(x,y)
 end
 #-------------------------------------------------------------------------------
 type BoxOutline <: Geo
@@ -53,7 +60,7 @@ type Element <: Geo
     end
 end
 # ==============================================================================
-type Box <: Shape
+type NBox <: Shape
     flags::BitArray{1}
     color::Array
     opacity::Float32
@@ -66,7 +73,7 @@ type Box <: Shape
     height::Float32
     padding::Nullable{BoxOutline}
     border::Nullable{Border}
-    Box() = new(
+    NBox() = new(
     # Generic node data
     falses(64), [], 1, Nullable{BoxOutline}(), Nullable{Point}(),
     # Shape data
@@ -98,9 +105,29 @@ type Arc <: Shape
     # border::Nullable{BoxOutline}
     Arc() = new( 0, Point(0,0), 0,0)
 end
-type Text <: Shape
+type NText <: Shape
+    flags::BitArray{1}
+    color::Array
+    opacity::Float32
+    margin::Nullable{BoxOutline}
+    offset::Nullable{Point}
+    #----------------------------
     text::String
-    height::Float32
+    left::Float32
+    top::Float32
+    #  size::Float32
+    #  weight::String
+    #  lineHeight::Float16
+    #  align::String # TODO: this should really be a flag to make things go faster!
+    #  family::String
+    #  space::Float16     # The extra space left in the line
+    #  words::Float16     # Number of words in the line
+    NText() = new(
+        # Generic node data
+        falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Point}(),
+        # Shape data
+        "",0, 0 )
+
 end
 #==============================================================================#
 

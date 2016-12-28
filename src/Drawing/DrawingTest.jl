@@ -1,11 +1,10 @@
 include("Drawing.jl")
-using Gtk.ShortNames, Graphics, Cairo, Colors
-import Naquadraw
-N = Naquadraw
-# include("GeomTypes.jl")
-# include("GeoMethods.jl")
+using Gtk.ShortNames, Cairo, Colors #  Graphics,
+using Naquadraw
+
+
 c = @Canvas()
-win = @Window("Canvas", 800, 600)
+win = @Window("Canvas", 1000, 800)
 push!(win, c)
 
 
@@ -17,38 +16,57 @@ push!(win, c)
     w = width(c)
     set_antialias(ctx,1)
     # BoxElement(flags,left,top,width,height, color,opacity,padding,border,margin,offset)
-
-    box = N.Box()
-    box.flags[N.IsBox] = true
-    box.flags[N.BordersSame] = true
+traits = falses(64)
+    box = NBox()
+    box.flags[IsRoundBox] = true # IsRoundBox IsBox
+    # box.flags[BordersSame] = true
       box.color = [.5,.8,.8]
-      box.margin = N.BoxOutline(10,20,8,3,18,23)
-      box.offset = N.Point(30,40)
+      box.margin = BoxOutline(10,20,8,3,18,23)
+      box.offset = Point(30,40)
       box.left    = 100
       box.top     = 100
-      box.width   = 250
-      box.height  = 200
-      box.padding = N.BoxOutline(10,10,10,10,20,20)
-      box.border  = N.Border(1,3,6,9, 7,12, 0,[.0,.3,.6],[17,17,17,17])
+      box.width   = 450
+      box.height  = 400
+      box.padding = BoxOutline(10,10,10,10,20,20)
+      box.border  = Border(1,3,4,10, 5,13, 0,[.0,.3,.6],[17,17,17,17])
 
 
-    circle = N.Circle()
-        box.flags[N.IsCircle] = true
-        circle.color = [.2,.5,.5]
-        circle.margin = N.BoxOutline(10,20,8,3,18,23)
-        circle.origin    = N.Point(400,80)
-        circle.radius    = 50
-        circle.border  = N.Border(10,10,10,10,20,20, 0,[.0,.3,.6],[17,7,7,7])
+const RelativeTop      = 1
+const RelativeBottom   = 2
+const RelativeLeft     = 3
+const RelativeRight    = 4
 
-        if box.flags[N.IsRoundBox] == true
-            N.DrawRoudedBox(ctx, box)
+
+    circle = Circle()
+        box.flags[IsCircle] = true
+        circle.color   = [.2,.5,.5]
+        circle.margin  = BoxOutline(10,20,8,3,18,23)
+        circle.origin  = Point(10,10)
+        circle.radius  = 50
+        circle.border  = Border(10,10,10,10,20,20, 0,[.0,.3,.6],[17,7,7,7])
+
+  text = NText()
+  text.text = "This is some sample text for testing the text printing capabilities of cairo. . . "
+
+
+
+ parentArea = getContentBox(box, getReal(box)... )
+
+        if box.flags[IsRoundBox] == true
+            DrawRoudedBox(ctx, traits, 1, box)
         end
-        if box.flags[N.IsBox] == true
-            N.DrawBox(ctx, box)
+        if box.flags[IsBox] == true
+            DrawBox(ctx, box)
         end
-        if box.flags[N.IsCircle] == true
-            N.DrawCircle(ctx, circle)
+        if box.flags[IsCircle] == true
+            #getContentBox(box::NBox, padding, border, margin)
+            DrawCircle(ctx, traits, parentArea, circle)
         end
 
+        textBox(ctx, traits, parentArea, text)
+        select_font_face(ctx, "Sans", Cairo.FONT_SLANT_NORMAL, Cairo.FONT_WEIGHT_BOLD);
+        set_font_size(ctx, 15.0);
+        move_to(ctx, 0, 0);
+        show_text(ctx, text.text);
 end
 show(c)

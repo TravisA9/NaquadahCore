@@ -1,3 +1,6 @@
+export HasBorder, BordersSame, Clip, IsBox, IsRoundBox, IsArc, IsCircle, IsLine,
+       IsCurve, IsText, IsEllipse, IsPolygon, IsPolyline, IsPath 
+
 const HasBorder     = 1
 const BordersSame   = 2
 const Clip          = 3

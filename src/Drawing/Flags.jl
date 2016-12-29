@@ -1,5 +1,5 @@
 export HasBorder, BordersSame, Clip, IsBox, IsRoundBox, IsArc, IsCircle, IsLine,
-       IsCurve, IsText, IsEllipse, IsPolygon, IsPolyline, IsPath 
+       IsCurve, IsText, IsEllipse, IsPolygon, IsPolyline, IsPath
 
 const HasBorder     = 1
 const BordersSame   = 2
@@ -17,6 +17,16 @@ const IsPolygon     = 12  # points="220,10 300,210 170,250 123,234"
 const IsPolyline    = 13  #  points="20,20 40,25 60,40 80,120 120,140 200,180"
 const IsPath        = 14
 
+export TextCenter, TextRight, TextJustify, TextItalic, TextOblique, TextBold
+
+const TextCenter     = 15
+const TextRight      = 16
+const TextJustify    = 17
+
+const TextItalic     = 18
+const TextOblique    = 19
+
+const TextBold       = 20
 
 
 #.==============================================================================

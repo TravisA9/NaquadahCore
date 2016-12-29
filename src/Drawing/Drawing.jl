@@ -38,8 +38,8 @@ function DrawCircle(ctx::CairoContext, traits::BitArray{1}, parentArea, circle::
     margin = get(circle.margin,  BoxOutline(0,0,0,0,0,0))
 
               radius = circle.radius + border.width
-              l = circle.origin.x + margin.left + radius + pl
-              t = circle.origin.y + margin.top + radius + pt
+              l = margin.left + radius + pl
+              t = margin.top + radius + pt
 set_antialias(ctx,6)
           set_source_rgb( ctx, circle.color...)
                   move_to(ctx, l, t)
@@ -51,8 +51,13 @@ set_antialias(ctx,6)
 
                   set_line_width(ctx, border.top);
                   stroke(ctx);
-          end
 
+
+                  select_font_face(ctx, "Sans", Cairo.FONT_SLANT_NORMAL, Cairo.FONT_WEIGHT_BOLD);
+                  # set_font_size(ctx, 15.0);
+                  # move_to(ctx, l, t);
+                  # show_text(ctx, "Hello!");
+end
 #======================================================================================#
 # TODO: see if curveTo() will work to simplify this.
 #======================================================================================#
@@ -173,171 +178,137 @@ reset_clip(ctx)
 end
 
 #======================================================================================#
-function textBox(ctx, traits, parentArea, text)
-    pl, pt, pw, ph = parentArea
+#======================================================================================#
+function textBox(ctx, traits, parentArea, MyText)
+    pl, pt, width, ph = parentArea
 
-    select_font_face(ctx, "Sans", Cairo.FONT_SLANT_NORMAL, Cairo.FONT_WEIGHT_BOLD);
-    set_font_size(ctx, 15.0);
 
-    words = split(text.text)
+
+    if MyText.flags[TextItalic] == true
+        slant = Cairo.FONT_SLANT_ITALIC
+    elseif MyText.flags[TextOblique] == true
+        slant = Cairo.FONT_SLANT_OBLIQUE
+    else
+        slant = Cairo.FONT_SLANT_NORMAL
+    end
+
+    if MyText.flags[TextBold] == true
+        weight = Cairo.FONT_WEIGHT_NORMAL
+    else
+        weight = Cairo.FONT_WEIGHT_BOLD
+    end
+
+    select_font_face(ctx, MyText.family, slant, weight);
+    set_font_size(ctx, MyText.height);
+
+    # size::Float32, weight::String, lineHeight::Float16, align::String, family::String
+
+
+    words = split(MyText.text)
+    rows = []
+
     lines = []
     lastLine = ""
-    line = words[1]
+    line = words[1] * " "
+
+     lineTop = pt
+
     for w in 2:length(words)
         lastLine = line
         line = lastLine * words[w] * " "
         extetents = text_extents(ctx,line )
         # long enough
-        if extetents[3] >= pw
-            push!(lines,lastLine)
+        if extetents[3] >= width
+            te = text_extents(ctx,lastLine )
+            lineTop = AddTextRow(MyText, rows, lastLine, pl,   lineTop, (width-te[3]))
             line = ""
         end
 
     end
-    # Push the leftovers onto a new line
-    push!(lines,lastLine)
-    for i in 1:length(lines)
-        move_to(ctx, 0+pl, (i*15) +pt);
-        show_text(ctx, lines[i]);
-    end
-#text_extents(ctx,w );
+    te = text_extents(ctx,line )
+    lineTop = AddTextRow(MyText, rows, lastLine, pl, lineTop, (width-te[3]))
+    # push!(lines,lastLine) # Push the leftovers onto a new line
 
+
+
+    for i in 1:length(rows)
+        row = rows[i]
+        for j in 1:length(row.nodes)
+            node = row.nodes[j]
+            # if node.flags[IsText] == true
+                DrawText(ctx, MyText, row, node, pl)
+            # end
+        end
+    end
 
 end
+# function DrawRows(ctx,row,node,left)
+#======================================================================================#
+function AddTextRow(MyText, rows, text, left, top, spaceLeft)
+
+    height = MyText.size * MyText.lineHeight
+
+    textLine = TextLine()
+        textLine.flags[IsText] = true
+        textLine.Reference = MyText
+        textLine.text      = text
+        textLine.left      = left
+        textLine.top       = top + height
+        println(textLine)
+
+    row = Row()
+        push!(row.nodes, textLine)
+        row.height = height
+        row.x = left
+        row.y = top
+        row.space = spaceLeft
+    push!(rows,row)
+    return top + height
+end
+#======================================================================================#
+function DrawText(ctx, MyText, row, node, left)
+
+    #MyText.flags[TextCenter] = true
+
+    if MyText.flags[TextItalic] == true
+        slant = Cairo.FONT_SLANT_ITALIC
+    elseif MyText.flags[TextOblique] == true
+        slant = Cairo.FONT_SLANT_OBLIQUE
+    else
+        slant = Cairo.FONT_SLANT_NORMAL
+    end
+
+    if MyText.flags[TextBold] == true
+        weight = Cairo.FONT_WEIGHT_NORMAL
+    else
+        weight = Cairo.FONT_WEIGHT_BOLD
+    end
+
+    # select_font_face(ctx, MyText.family, slant, weight);
+    select_font_face(ctx, "Sans", Cairo.FONT_SLANT_NORMAL, Cairo.FONT_WEIGHT_BOLD);
+    set_font_size(ctx, node.height);
+        here = left
+        if MyText.flags[TextCenter] == true
+            here = left + (row.space * .5)
+        elseif  MyText.flags[TextRight] == true
+            here = left + row.space
+        end
+
+
+    #middle = left + (row.space * .5)
+    #right = left + row.space
+    move_to(ctx, left, node.top);
+    println(node.top)
+    #set_source_rgb(ctx, MyText.color...)
+    show_text(ctx, node.text);
+    print("Hello!")
+end
+
 #======================================================================================#
 # Draw node text
 # Cairo tutorial: https://www.cairographics.org/tutorial/
 # CALLED FROM: DrawNode()
 #======================================================================================#
-function drawText(cr::CairoContext, traits::BitArray{1}, parentArea, text::Text)
-    # document::Page, node
-      #=---------------------------------=#
-      # Text=  lines, top, left, color, size, style, weight
-      #        lineHeight, align, family
-      #=---------------------------------=#
-      # TODO: perhaps these should be changes from strings to flags and values!
-
-
-        text = get(node.text)
-      if text.style == "italic"
-      slant = Cairo.FONT_SLANT_ITALIC
-      elseif text.style == "oblique"
-      slant = Cairo.FONT_SLANT_OBLIQUE
-      else
-      slant = Cairo.FONT_SLANT_NORMAL
-      end
-
-      if text.weight == "normal"
-              weight = Cairo.FONT_WEIGHT_NORMAL
-          elseif text.weight == "bold"
-              weight = Cairo.FONT_WEIGHT_BOLD
-          end
-      select_font_face(cr, text.family, slant, weight);
-        set_font_size(cr, text.size);
-        # set text color to draw
-        textcolor = text.color
-        setcolor( cr, textcolor...)
-
-
-                set_antialias(cr,0)
-               # extents = text_extents(cr,E["text"]);
-				x = node.content.left
-				y = node.content.top + text.size #extents[4]
-				move_to(cr, x, y);
-
-#text.align = "center"
-			    # select_font_face(cr, "Sans", Cairo.FONT_SLANT_OBLIQUE, Cairo.FONT_WEIGHT_BOLD);
-	            # set_font_size(cr, 16.0);
-		for line in text.lines # lines
-                # justify Still not working very well
-				if text.align == "justify"
-				            	# we'll need spacers to insert between words
-				            	#      We should also make a spacer-length to line-length
-				            	# contingency to keep the last line pretty!
-				            	# spacers = line.space/line.words
-				            words = split(line.text)
-				            left = x
-				            if line.words > 2
-				            	spacer = (line.space/(line.words-1))
-				            elseif line.words == 2
-				            	spacer = line.space
-				            elseif line.words == 1
-				            	spacer = line.space/2
-				            end
-				        #for word in words
-				        for i in eachindex(words) #
-
-				        	#TODO: put a condition on the last word here
-				        	if i == length(words)
-				        		w = words[i]
-				        	else
-				        		w = words[i] * " "
-				        		# print(w)
-				        	end
-
-				        	#width = textwidth(cr,w) + spacer
-				        	width = text_extents(cr,w );
-				            # print(width[3], ", ")
-				        	# text_extents(cr,E["text"]);
-						    move_to(cr, left, y);
-							show_text(cr,w);
-				            left = left + width[3] + spacer
-						end
-
-							y = y + ( text.size * text.lineHeight) # WAS: extents[4]
-							if y >=  node.box.top + node.area.height
-                                # print("drop out")
-								break
-							end
-
-				else
-						    #extents = text_extents(cr,line.text );
-			            	# print(extents)
-			            	if text.align == "left"
-				            	left = x
-				            elseif text.align == "right"
-				            	left = x + line.space
-				            elseif text.align == "center"
-				            	left = x + (line.space/2)
-			            	end
-
-
-
-
-Highlight(cr::CairoContext,document::Page,text,line,left,y)
-
-
-
-
-
-
-
-			            	# print(extents,": ")
-						    move_to(cr, left, y);
-							show_text(cr,line.text);
-              stroke(cr);
-
-              # let's see if we can underline the text
-              if node.flags[IsUnderlined] == true
-                set_antialias(cr,0)
-                set_line_width(cr, 1);
-                extents = text_extents(cr, line.text );
-                move_to(cr, left, y+2);
-                rel_line_to(cr, extents[3], 0);
-                stroke(cr);
-              end
-
-
-
-							y = y + ( text.size * text.lineHeight) # WAS: extents[4]
-							if y >= node.box.top + node.area.height - 3
-								break
-							end
-				end #end of not-justify
-		end
-set_antialias(cr,1)
-stroke(cr);
-end
 
 
 

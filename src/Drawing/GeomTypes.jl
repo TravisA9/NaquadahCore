@@ -6,7 +6,7 @@ export
           # General utility:
           Point, BoxOutline, Square,
           # Shapes:
-          Border, NBox, Circle, Arc, NText
+          Border, NBox, Circle, Arc, NText, Row, TextLine
 
 abstract Geo
 #-------------------------------------------------------------------------------
@@ -105,6 +105,8 @@ type Arc <: Shape
     # border::Nullable{BoxOutline}
     Arc() = new( 0, Point(0,0), 0,0)
 end
+
+#=---------------------------------=#
 type NText <: Shape
     flags::BitArray{1}
     color::Array
@@ -115,19 +117,43 @@ type NText <: Shape
     text::String
     left::Float32
     top::Float32
-    #  size::Float32
-    #  weight::String
-    #  lineHeight::Float16
-    #  align::String # TODO: this should really be a flag to make things go faster!
-    #  family::String
-    #  space::Float16     # The extra space left in the line
-    #  words::Float16     # Number of words in the line
+    width::Float32
+    height::Float32
+
+    size::Float32
+    lineHeight::Float16
+    family::String
+
     NText() = new(
         # Generic node data
         falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Point}(),
         # Shape data
-        "",0, 0 )
+        "", 0,0,0,0,
+         12, 1.4,  "Sans")
 
+end
+#=---------------------------------=#
+type TextLine <: Shape
+    flags::BitArray{1}
+    Reference::Any
+    text::String
+    left::Float32
+    top::Float32
+    width::Float32
+    height::Float32
+    TextLine() = new(falses(64), 0,"", 0,0,0,0)
+end
+
+type Row <: Layout
+    flags::BitArray{1} #Any
+    nodes::Array{Any}
+    height::Float32
+    space::Float32
+    x::Float32
+    y::Float32
+    # Row(flags,nodes) = new(falses(8),[])
+    Row() = new(falses(8),[],0,0,0,0)
+    #Row(left,right, top,bottom, width,height) = new(left,right, top,bottom, width,height)
 end
 #==============================================================================#
 

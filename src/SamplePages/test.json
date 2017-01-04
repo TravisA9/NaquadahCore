@@ -1,0 +1,62 @@
+{
+"head":{
+		"title":"MyPage",
+	   	"charset":"utf-8",
+	   	"keywords":"web tech,browser concept,Json Pages,fragmented web tech",
+	   	"author":"Travis Deane Ashworth",
+	  	"links":{"url":"http://travis.net16.net/test.json"}
+	},
+
+"style":{
+			"Button":{
+				"display":"inline",
+							"padding":10, "margin":2, "width":170, "height":100,
+							"border":{"radius":3, "style":"solid", "width":"thin"},
+							"font":{ "size":12, "style":"italic", "align":"left", "lineHeight":1.4, "weight":"bold", "family":"Georgia" }
+			}
+		},
+
+"body":[
+		{">":"div",
+      "display":"inline-block",
+  		"color":[0.5,0.8,0.8],
+      "padding":5,
+      "width":450,
+  		"height":400,
+      "border":{"radius":7, "width":"thick", "style":"solid", "color":[0.0,0.3,0.6]},
+      "nodes":[
+        {">":"circle",
+    	      "radius":18,
+		        "color":"lightgreen",
+		        "border":{"width":"thin", "style":"solid", "color":"blue"}},
+        {">":"circle",
+        	  "radius":18,
+    		    "color":"lightgreen",
+    		    "border":{"width":"thin", "style":"solid", "color":"blue"}},
+        {">":"div",
+             "display":"inline-block",
+          	 "color":[0.7,0.5,0.5],
+             "float":"left",
+          	 "margin":5,
+             "width":50,
+         		 "height":40,
+             "border":{"radius":7, "width":"thin", "style":"solid", "color":"black"}},
+        {">":"p",
+          "font":{
+            "color":"black",
+            "size":15,
+
+            "align":"left",
+            "lineHeight":1.4,
+            "weight":"bold",
+            "family":"Georgia" },
+      			 "text":"This is some sample text for testing the text printing capabilities of cairo. This is some sample text for testing the text printing capabilities of cairo. This is some sample text for testing the text printing capabilities of cairo. This is some sample text for testing the text printing capabilities of cairo.. ."
+           },
+        {">":"circle",
+             "radius":5,
+       		   "color":"lightgreen",
+       		   "border":{"width":"thin", "style":"solid", "color":"blue"}}
+
+           ]
+     }
+]}

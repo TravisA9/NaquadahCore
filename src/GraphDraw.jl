@@ -12,11 +12,13 @@ using Cairo, Gtk.ShortNames # Graphics,
 
 export
           # get real data (margin, padding, border) instead of Nullables
-          getReal, DrawBox, DrawCircle, DrawRoudedBox, textToRows, DrawText,
+          getReal, DrawBox, DrawCircle, DrawRoundedBox, textToRows, DrawText,
           PushToRow, FinalizeRow,
           # get calculated metrics
           getBorderBox, getContentBox, getMarginBox, getSize
           TotalShapeWidth, TotalShapeHeight
+
+include("LayoutBuild.jl")
 # ======================================================================================
 #function clip(ctx::CairoContext, path)
 # ======================================================================================
@@ -96,7 +98,7 @@ end
 #======================================================================================#
 # TODO: see if curveTo() will work to simplify this.
 #======================================================================================#
-function DrawRoudedBox(ctx::CairoContext, parentArea, box::NBox)
+function DrawRoundedBox(ctx::CairoContext, parentArea, box::NBox)
     border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
     margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
     l,t,w,h = getBorderBox(box, border, margin)
@@ -151,197 +153,9 @@ b -= (border.bottom - line)
 			set_antialias(ctx,1)
 reset_clip(ctx)
 end
-
-#======================================================================================#
-function fontSlant(MyText)
-    if MyText.flags[TextItalic] == true
-        return Cairo.FONT_SLANT_ITALIC
-    elseif MyText.flags[TextOblique] == true
-        return Cairo.FONT_SLANT_OBLIQUE
-    else
-        return Cairo.FONT_SLANT_NORMAL
-    end
-end
-function fontWeight(MyText)
-    if MyText.flags[TextBold] == true
-        return Cairo.FONT_WEIGHT_BOLD
-    else
-        return Cairo.FONT_WEIGHT_NORMAL
-    end
-end
-#======================================================================================#
-function textToRows(rows, parentArea, MyText)
-  c = CairoRGBSurface(0,0);
-  ctx = CairoContext(c);
-
-#c = @Canvas()
-#@guarded draw(c) do widget
-    #ctx = getgc(c)
-     h = 800 #height(c)
-     w = 1000 #width(c)
-
-      slant  = fontSlant(MyText)
-      weight = fontWeight(MyText)
-      select_font_face(ctx, MyText.family, slant, weight);
-      set_font_size(ctx, MyText.size);
-
-    pl, pt, width, ph = parentArea
-
-# when we want to add text to a row that already has content
-  # if length(rows) == 0 # no row!
-  #   row = Row(pl, width)
-  #   push!(rows, row)
-  # end
-    if length(rows[end].nodes) > 0 # Already has nodes!
-        lineWidth = rows[end].space
-        lineLeft = rows[end].x
-        isPartRow = true
-      else
-        lineWidth = width
-        lineLeft = pl
-        isPartRow = false
-    end
-
-
-
-    lines = []
-    lastLine = ""
-
-     lineTop = pt + MyText.size
-     words = split(MyText.text)
-     line = words[1] * " "
-
-    for w in 2:length(words)
-        lastLine = line
-        line = lastLine * words[w] * " "
-        extetents = text_extents(ctx,line )
-        # long enough
-        if extetents[3] >= lineWidth
-            te = text_extents(ctx, lastLine )
-            # lineTop,
-            textLine = TextLine(MyText, lastLine, lineLeft, 0, te[3], MyText.height)
-                      #TextLine(MyText,   text,   left,     top,     width, height)
-            println(textLine.left ,textLine.top ,textLine.width ,textLine.height ,textLine.text)
-            PushToRow(rows, parentArea, textLine)
-            #lineTop += MyText.height
-            line = words[w] * " "
-
-            if isPartRow == true
-                lineWidth = width
-                lineLeft = pl
-                isPartRow = false
-            end
-        end
-
-    end
-    te = text_extents(ctx,line )
-    textLine = TextLine(MyText, lastLine, lineLeft, 0, te[3], MyText.height)
-    PushToRow(rows, parentArea, textLine)
-
-
-end
-# function DrawRows(ctx,row,node,left)
-#======================================================================================#
-# PushToRow(rows, parentArea, circle, circleHeight, circleWidth)
-function PushToRow(rows, box, thing)
-  boxleft, boxtop, boxwidth, boxheight = box
-  thingWidth, thingHeight = getSize(thing)
-    # if object is too wide make new row
-    if length(rows) < 1
-        row = Row(boxleft, boxwidth)
-        row.y = boxtop
-        push!(rows, row)
-    end
-    row = rows[end]
-    # not enough space.. new row!
-    if row.space < thingWidth
-           FinalizeRow(box, row)
-            newRow = Row(boxleft + thingWidth, boxwidth - thingWidth)
-                push!(newRow.nodes, thing)
-                newRow.height = thingHeight
-                thing.left = boxleft
-                newRow.y = row.y + row.height
-                thing.top = newRow.y
-            push!(rows, newRow)
-            return
-    end
-    # if object height is greater than row reset row.height
-    if row.height < thingHeight
-            row.height = thingHeight
-    end
-    # add object to row and calculate remaining space
-    if row.y == 0
-      row.y = boxtop
-    end
-    thing.top = row.y # TODO: a bunch of stuff
-    thing.left = row.x
-    row.space -= thingWidth
-    row.x += thingWidth
-    push!(row.nodes, thing)
-
-end
-#======================================================================================#
-function FinalizeRow(thing, row)
-    # move objects up or down (withing row space) depending on layout options.
-    # Be sure that the heights of all objects have been set.
-    # Float the floats
-    # The contents of a container may effect the container itself. Such as height; set that!
-    # Set any node heights that are % values.
-  # thing.width
-  shiftAll = 0
-  for i in 1:length(row.nodes)
-    item = row.nodes[i]
-    if isa(item, TextLine)
-      MyText = item.Reference
-        if MyText.flags[TextCenter] == true
-            shiftAll = (row.space * .5)
-            row.space = shiftAll
-        elseif  MyText.flags[TextRight] == true
-            shiftAll = row.space
-            row.space = 0
-          end
-
-        if  MyText.flags[AlignBase] == true # AlignBase, AlignMiddle
-          item.top += (row.height-MyText.height)
-        end
-        if MyText.flags[AlignMiddle] == true
-          item.top += (row.height-MyText.height) *.5
-        end
-
-    end
-    item.left += shiftAll
-  end
-#....................................... floats
-    # LEFT
-    for i in 2:length(row.nodes)
-        item = row.nodes[i]
-        if item.flags[FloatLeft] == true
-            w, h = getSize(item)
-            item.left = row.nodes[1].left
-            for j in 1:(i-1)
-                row.nodes[j].left += w
-            end
-        end
-    end
-    # Right
-    for i in length(row.nodes):-1:1
-      # row.space
-        item = row.nodes[i]
-        if item.flags[FloatRight] == true
-            w, h = getSize(item)
-            for j in (i+1):length(row.nodes)
-                row.nodes[j].left -= w
-            end
-            wide,high = getSize(row.nodes[end])
-            item.left = row.nodes[end].left + wide + row.space
-        end
-    end
-
-end
-#======================================================================================#
 #======================================================================================#
 function DrawText(ctx, row, node)
-  MyText = node.Reference
+  MyText = node.Reference.shape
   left = node.left
 
     slant  = fontSlant(MyText)

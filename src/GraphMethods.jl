@@ -10,16 +10,16 @@ function getReal(box::Draw)
 end # padding, border, margin
 
 function getBorderBox(box::NBox, border, margin)
-    return ( box.left    + margin.left, #+ border.left
-             box.top    + margin.top,   # + border.top
+    return ( box.left  - border.left, #+ border.left  + margin.left)
+             box.top   - border.top,   # + border.top   + margin.top)
              box.width  + border.width,
              box.height + border.height )
 end
 function getContentBox(box::NBox, padding, border, margin)
-    return ( box.left   + border.left   + padding.left + margin.left   ,
-             box.top    + border.top    + padding.top  + margin.top    ,
-             box.width  - border.width  - padding.width,
-             box.height - border.height - padding.height )
+    return ( box.left   + padding.left   , #   + padding.left + margin.left
+             box.top    + padding.top    , #    + padding.top  + margin.top
+             box.width  - padding.width  ,
+             box.height - padding.height )
 end
 function getContentBox(circle::Circle, padding, border, margin)
   dia = circle.radius*2+1

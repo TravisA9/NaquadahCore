@@ -23,37 +23,18 @@ type Point
     y::Float32
 end
 # ======================================================================================
-# ======================================================================================
-#type Row
-#    flags::BitArray{1} #Any
-#    nodes::Array{Any}
-#    height::Float32
-#    x::Float32
-#    y::Float32
-#    Row() = new(falses(8),[],0,0,0)
-#end
-# ======================================================================================
+
 # ======================================================================================
 type Element
-        #.......................................................................
-        #==#  DOM::Dict       # Reference to dictionary counterpart of this node
-        #.......................................................................
-        #==#  parent::Any               # This node's parent
-        #==#  children::Array{Element,1} # Children in order they appear in DOM
-    #...........................................................................
-    # Layout dependant details
-    #rows::Array{Row,1}  # references to children by row
-    #floater::Array      # list of float type children
-    #flags::BitArray{1} # Boolean information about the DOM/Layout
+    DOM::Dict       # Reference to dictionary counterpart of this node
+    parent::Any               # This node's parent
+    children::Array{Element,1} # Children in order they appear in DOM
+    rows::Array{Row,1} # A layout property
     shape::Any # link to layout representation of node
-
         function Element(DOM=Dict())
             parent = nothing
-                #rows::Array{Row,1} = []
-                children::Array{Element,1} = []
-                #floater::Array{Element,1} = []
-                #push!(rows, Row()) # rows, floater, falses(64),
-            new(DOM, parent, children, nothing)
+            children::Array{Element,1} = []
+            new(DOM, parent, children, [], nothing)
         end
 end
 # ======================================================================================
@@ -103,7 +84,7 @@ function printDict(DOM)
                if k != 1; key = ", $(key)"; end
             str =   "$(str)$(key):$(value)"
            end
-    println(str)
+    #println(str)
     # return str
 end
 # ======================================================================================
@@ -117,7 +98,7 @@ function CreateDomTree(document::Page, parent::Element)
             for i in eachindex(DOM_nodes)
                 push!(parent.children, Element(DOM_nodes[i]))
                     node = parent.children[end]
-                    printDict(node.DOM)
+                    # printDict(node.DOM)
 
                     if haskey(DOM_nodes[i], "nodes") # Instantiate Children
                         CreateDomTree(document, node)
@@ -128,22 +109,33 @@ end
 # ======================================================================================
 function CreateLayoutTree(document, node)
   children = node.children
+  #l,t,w,h = getContentBox(node, getReal(node)... )
+
     for i in 1:length(children)
         child = children[i]
         AtributesToLayout(child)
-            CreateLayoutTree(document, child)
-
-        parentArea = getContentBox(node.shape, getReal(node.shape)... )
-
-        if isa(child.shape, NText) #node.shape.flags[] == true
-            row = textToRows(node.shape.rows, parentArea, child.shape)
+        if isa(child.shape, NText) #node.shape.flags[] == true row =
+            textToRows(node, child)
         else
-            PushToRow(node.shape.rows, parentArea, child.shape)
+            PushToRow(node, child)
         end
 
-
+        CreateLayoutTree(document, child)
 
     end
+end
+# ======================================================================================
+function setWindowSize(w,h, n)
+  n.shape = NBox()
+    n.shape.color = [.5,.8,.8]
+    n.shape.padding = BoxOutline(10,10,10,10,20,20)
+    # we need to make sure we set VP based on padding!
+    padding = get(n.shape.padding, BoxOutline(0,0,0,0,0,0))
+    n.shape.left    = padding.left
+    n.shape.top     = padding.top
+    n.shape.width   = w - padding.width
+    n.shape.height  = h - padding.height
+    #n.shape.padding = BoxOutline(3,3,3,3,6,6)
 end
 # ======================================================================================
 function DrawANode(document, n)
@@ -152,108 +144,40 @@ function DrawANode(document, n)
         h = height(c)
         w = width(c)
        set_antialias(ctx,1)
-       n.shape = NBox()
-         n.shape.color = [.5,.8,.8]
-         n.shape.left    = 0
-         n.shape.top     = 0
-         n.shape.width   = w
-         n.shape.height  = h
-         n.shape.padding = BoxOutline(3,3,3,3,6,6)
-
-
-
+       setWindowSize(w,h, n)
 
        node = n.children[1]
        CreateLayoutTree(document, n)
+       DrawContent(ctx, n)
 
-
-
-
-DrawContent(ctx, n.shape)
-#=
-       children = node.children
-         for h in 1:length(children)
-             child = children[h]
-             rows = child.shape.rows
-
-             for i in 1:length(rows)
-                 row = rows[i]
-                 for j in 1:length(row.nodes)
-                     node = row.nodes[j]
-                      if isa(node, TextLine)
-                          DrawText(ctx, row, node)
-                      end
-                      if isa(node, Circle) #getContentBox(box::NBox, padding, border, margin)
-                          DrawCircle(ctx, parentArea, node)
-                      end
-                      if isa(node, NBox)
-                        if node.flags[IsRoundBox] == true
-                          DrawRoudedBox(ctx, 1, node)
-                        else
-                          DrawBox(ctx, node)
-                        end
-                      end
-                 end
-             end
-
-
-           end
-=#
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # if firstNode.shape.flags[IsRoundBox] == true
-        #   DrawRoudedBox(ctx, 1, firstNode.shape)
-        # else
-        #   DrawBox(ctx, firstNode.shape)
-        # end
 end
 show(c)
 end
 # ======================================================================================
-function DrawContent(ctx, n)
-  rows = n.rows
-  parentArea = getContentBox(n, getReal(n)... )
-
+function DrawContent(ctx, node)
+  rows = node.rows
+  parentArea = getContentBox(node.shape, getReal(node.shape)... )
   for i in 1:length(rows)
       row = rows[i]
       for j in 1:length(row.nodes)
-          node = row.nodes[j]
+          child = row.nodes[j]
+          shape = getShape(child)
+
+          # Only draw if visible! node.shape.flags[FixedHeight] == true &&
+          if row.y < node.shape.top + node.shape.height
+                 isa(shape, TextLine) && DrawText(ctx, row, shape)
+                 isa(shape, Circle) && DrawCircle(ctx, parentArea, shape)
+                 isa(shape, NBox) &&
+                   if child.shape.flags[IsRoundBox] == true
+                     DrawRoundedBox(ctx, 1, shape)
+                   else
+                     DrawBox(ctx, shape)
+                   end
 
 
-           if isa(node, TextLine)
-               DrawText(ctx, row, node)
-           end
-           if isa(node, Circle) #getContentBox(box::NBox, padding, border, margin)
-               DrawCircle(ctx, parentArea, node)
-           end
-           if isa(node, NBox)
-             if node.flags[IsRoundBox] == true
-               DrawRoudedBox(ctx, 1, node)
-             else
-               DrawBox(ctx, node)
-             end
-           end
+                !isa(child, TextLine) && DrawContent(ctx, child)
 
-           if !isa(node, TextLine)
-             DrawContent(ctx, node)
-           end
+         end
       end
   end
 end

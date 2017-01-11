@@ -103,7 +103,7 @@ l, t, w, h = getContentBox(box, getReal(box)... )
     box.height = rows[end].y - t + rows[end].height + p.height
             if isa(box, NBox)
               if box.flags[IsRoundBox] == true
-                DrawRoudedBox(ctx, traits, 1, box)
+                DrawRoudedBox(ctx, 1, box)
             else
                 DrawBox(ctx, box)
               end

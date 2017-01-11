@@ -154,33 +154,30 @@ end
 show(c)
 end
 # ======================================================================================
-function DrawContent(ctx, n)
-  rows = n.rows
-  parentArea = getContentBox(n.shape, getReal(n.shape)... )
+function DrawContent(ctx, node)
+  rows = node.rows
+  parentArea = getContentBox(node.shape, getReal(node.shape)... )
   for i in 1:length(rows)
       row = rows[i]
       for j in 1:length(row.nodes)
-          node = row.nodes[j]
-          shape = getShape(node)
+          child = row.nodes[j]
+          shape = getShape(child)
+
+          # Only draw if visible! node.shape.flags[FixedHeight] == true &&
+          if row.y < node.shape.top + node.shape.height
+                 isa(shape, TextLine) && DrawText(ctx, row, shape)
+                 isa(shape, Circle) && DrawCircle(ctx, parentArea, shape)
+                 isa(shape, NBox) &&
+                   if child.shape.flags[IsRoundBox] == true
+                     DrawRoundedBox(ctx, 1, shape)
+                   else
+                     DrawBox(ctx, shape)
+                   end
 
 
-           if isa(shape, TextLine)
-               DrawText(ctx, row, shape)
-           end
-           if isa(shape, Circle) #getContentBox(box::NBox, padding, border, margin)
-               DrawCircle(ctx, parentArea, shape)
-           end
-           if isa(shape, NBox)
-             if node.shape.flags[IsRoundBox] == true
-               DrawRoundedBox(ctx, 1, shape)
-             else
-               DrawBox(ctx, shape)
-             end
-           end
+                !isa(child, TextLine) && DrawContent(ctx, child)
 
-           if !isa(node, TextLine)
-             DrawContent(ctx, node)
-           end
+         end
       end
   end
 end

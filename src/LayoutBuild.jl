@@ -37,7 +37,8 @@ function FinalizeRow(thing, row)
               item.top += (row.height-TextStyle.height) *.5
             end
     end
-
+    thing = getShape(item)
+    thing.left += shiftAll 
     #if isa(item, TextLine)
     #  item.left += shiftAll
     #else

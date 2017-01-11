@@ -1,16 +1,18 @@
-export HasBorder, BordersSame, Clip, IsRoundBox,
-       FloatLeft, FloatRight,
-       AlignBase, AlignMiddle,
-       TextCenter, TextRight, TextJustify,
-       TextItalic, TextOblique, TextBold
+export HasBorder,   BordersSame,  Clip, IsRoundBox,
+       FixedHeight,
+       FloatLeft,   FloatRight,
+       AlignBase,   AlignMiddle,
+       TextCenter,  TextRight,    TextJustify,
+       TextItalic,  TextOblique,  TextBold
 
 const HasBorder     = 1
 const BordersSame   = 2
 const Clip          = 3
 const IsRoundBox    = 4
+const FixedHeight   = 5
 
-const FloatLeft     = 5
-const FloatRight    = 6
+const FloatLeft     = 11
+const FloatRight    = 12
 
 const AlignBase      = 13
 const AlignMiddle    = 14

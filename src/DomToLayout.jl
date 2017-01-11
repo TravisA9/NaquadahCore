@@ -68,6 +68,7 @@ function AtributesToLayout(node)
             end
       if haskey(DOM, "height")
               node.shape.height = DOM["height"]
+              node.shape.flags[FixedHeight] = true
             end
             #.........................................................................
 if haskey(DOM, "border")
@@ -139,6 +140,7 @@ if haskey(DOM, "border")
             #else node.shape.flags[TextJustify] = true
             end
         end
+
         if haskey(font, "vertical-align")
             if font["vertical-align"] == "bottom"
                 node.shape.flags[AlignBase] = true

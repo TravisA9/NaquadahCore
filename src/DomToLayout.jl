@@ -41,7 +41,7 @@ function AtributesToLayout(node)
       if E == "arc"
           node.shape = Arc()
       end
-      println(node.shape)
+      # println(node.shape)
       #.........................................................................""
 
       if haskey(DOM, "float")
@@ -168,7 +168,7 @@ if haskey(DOM, "border")
         end
         if haskey(font, "family")
                 node.shape.family = font["family"]
-                println("----------------",node.shape)
+              #  println("----------------",node.shape)
         end
       end
 

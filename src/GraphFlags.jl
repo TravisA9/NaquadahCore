@@ -24,6 +24,8 @@ const TextOblique    = 19
 
 const TextBold       = 20
 
+const IsHScroll      = 21
+const IsVScroll      = 22
 
 #.==============================================================================
 

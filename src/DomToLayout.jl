@@ -1,5 +1,5 @@
 include("ColorDefinitions.jl")
-
+export AtributesToLayout
 # ======================================================================================
 # EX: GetTheColor(border["color"])
 # CALLED FROM:
@@ -56,21 +56,67 @@ function AtributesToLayout(node)
       end
       if haskey(DOM, "text")
                     node.shape.text = DOM["text"]
-                  end
+      end
       if haskey(DOM, "color")
                     node.shape.color = GetTheColor(DOM["color"])
-                  end
-      if haskey(DOM, "display")
-                    # node.shape.display = DOM["display"]
-                  end
+      end
+      if haskey(DOM, "top")
+              node.shape.top = DOM["top"]
+      end
+      if haskey(DOM, "left")
+              node.shape.left = DOM["left"]
+      end
       if haskey(DOM, "width")
               node.shape.width = DOM["width"]
-            end
+      end
       if haskey(DOM, "height")
               node.shape.height = DOM["height"]
               node.shape.flags[FixedHeight] = true
-            end
-            #.........................................................................
+      end
+      if haskey(DOM, "display")
+          # like a <span> ...height/width are ignored
+         if DOM["display"] == "inline"
+              node.shape.width = 0
+              node.shape.height = 0
+              node.shape.flags[FixedHeight] = false
+              node.shape.flags[DisplayInline] = true
+         end
+         # LineBreakBefore, LineBreakAfter,
+          # set width has it's own row and set width/max-width ...default width is 100%
+          if DOM["display"] == "block"
+              node.shape.flags[DisplayBlock] = true
+              node.shape.flags[LineBreakBefore] = true
+              node.shape.flags[LineBreakAfter] = true
+          end
+          # Like inline but with height/width
+          if DOM["display"] == "inline-block"
+              node.shape.flags[DisplayInlineBlock] = true
+              node.shape.flags[LineBreakAfter] = true
+          end
+          if DOM["display"] == "none"
+              node.shape.flags[DisplayNone] = true
+          end
+          if DOM["display"] == "table"
+              node.shape.flags[DisplayTable] = true
+          end
+         # DisplayBlock, DisplayInlineBlock, DisplayNone, DisplayTable, DisplayFlex,
+
+      end
+      #.........................................................................
+      if haskey(DOM, "position")
+          # like a <span> ...height/width are ignored
+         if DOM["position"] == "fixed"
+              node.shape.flags[Fixed] = true
+         end
+         if DOM["position"] == "absolute"
+              node.shape.flags[Absolute] = true
+         end
+         if DOM["position"] == "relative"
+              node.shape.flags[Relative] = true
+         end
+     end
+
+       #.........................................................................
 if haskey(DOM, "border")
           border = DOM["border"]
              color = [0,0,0]
@@ -125,6 +171,22 @@ if haskey(DOM, "border")
                  padding = [ p,p,p,p,  p*2, p*2 ]
                end
         node.shape.padding = BoxOutline(padding...)
+      end
+      #.........................................................................
+      if haskey(DOM, "margin")
+        p = DOM["margin"]
+        margin = []
+               if isa(p, Array)
+                     if length(p) == 4
+                       margin = [ p[1],p[2],p[3],p[4],  p[1]+p[3], p[2]+p[4] ]
+                     end
+                     if length(p) == 2
+                       margin = [ p[1],p[2],p[1],p[2],  p[1]*2, p[2]*2 ]
+                     end
+               else
+                 margin = [ p,p,p,p,  p*2, p*2 ]
+               end
+        node.shape.margin = BoxOutline(margin...)
       end
       #.........................................................................
       if haskey(DOM, "font")

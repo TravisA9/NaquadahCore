@@ -17,14 +17,48 @@
 		},
 
 "body":[
+
+	{">":"div",
+  	"display":"block",
+	"color":[0.6,0.6,0.6],
+  	"padding":5,
+  	"border":{"radius":7, "width":"thin", "style":"solid", "color":[0.3,0.0,0.6]},
+  	"nodes":[
+			{">":"p",   "font":{ "color":"lightgreen", "size":32, "align":"center", "lineHeight":1.4, "family":"Georgia", "vertical-align":"middle" },
+						"text":"Presenting Naquadah: As a test of "
+			},
+			{">":"p",   "font":{ "color":"purple", "size":64, "align":"center", "lineHeight":1.4, "family":"Georgia", "vertical-align":"middle" },
+						"text":"julia "
+			},
+			{">":"p",   "font":{ "color":"lightgreen", "size":32, "align":"center", "lineHeight":1.4, "family":"Georgia", "vertical-align":"middle" },
+						"text":"in Technical and General Computing!"
+			}]
+	},
+	{">":"circle", "position":"fixed", "radius":15, "color":"lightgreen",
+		"top":20, "left":20, "width":15, "height": 15,
+				   "border":{"width":"thin", "style":"solid", "color":"blue"}}
+,
+	{">":"circle", "radius":5, "color":"pink",
+	       		   "border":{"width":"thin", "style":"solid", "color":"blue"}}
+,
 		{">":"div",
       "display":"inline-block",
+	  "margin":10,
   		"color":[0.5,0.8,0.8],
       "padding":5,
-      "width":450,
-  		"height":400,
+      "width":443,
       "border":{"radius":7, "width":"thick", "style":"solid", "color":[0.0,0.3,0.6]},
       "nodes":[
+		  {">":"div",
+               "display":"inline-block",
+               "color":[0.7,0.5,0.5],
+               "margin":5,
+               "width":4,
+           	   "height":4,
+               "border":{ "width":"medium", "style":"solid", "color":"black"}
+		   },
+
+
         {">":"circle",
     	      "radius":18,
 		        "color":"lightgreen",
@@ -33,34 +67,27 @@
         	  "radius":18,
     		    "color":"lightgreen",
     		    "border":{"width":"thin", "style":"solid", "color":"blue"}},
-        {">":"div",
-             "display":"inline-block",
-          	 "color":[0.7,0.5,0.5],
-             "float":"left",
-          	 "margin":15,
-             "width":50,
-         		 "height":40,
-             "border":{"radius":7, "width":"thin", "style":"solid", "color":"black"}},
-				{">":"div",
-									"display":"inline-block",
-								 "color":[0.7,0.5,0.5],
-									"float":"left",
-								 "margin":15,
-									"width":100,
-									 "height":40,
-									"border":{"radius":7, "width":"thin", "style":"solid", "color":"black"},
-								"nodes":[
-													{">":"p",
-														"font":{
-															"color":"black",
-															"size":12,
-															"align":"center",
-															"lineHeight":1.4,
-															"family":"Georgia" },
-															 "text":"This is some sample text for testing the text printing capabilities of cairo.. ."
-														}
-									]
-				},
+
+		{">":"div", "display":"inline-block", "color":[0.7,0.5,0.5],
+			"float":"left", "margin":5, "width":75,
+			"border":{"radius":7, "width":"thin", "style":"solid", "color":"black"},
+			"nodes":[ {">":"p",
+							"font":{ "color":"black", "size":12, "align":"center", "lineHeight":1.4, "family":"Georgia" },
+							"text":"Forth element float left! ..height not explicitly set."
+									}
+					]
+		},
+
+		{">":"div", "display":"inline-block", "color":[0.7,0.5,0.5],
+			"float":"left", "margin":5, "width":100, "height":40,
+			"border":{"radius":7, "width":"thin", "style":"solid", "color":"black"},
+			"nodes":[ {">":"p",
+							"font":{ "color":"black", "size":12, "align":"center", "lineHeight":1.4, "family":"Georgia" },
+							"text":"Fifth element float left!"
+									}
+					]
+		},
+
         {">":"p",
           "font":{
             "color":"black",
@@ -71,11 +98,51 @@
             "family":"Georgia" },
       			 "text":"This is some sample text for testing the text printing capabilities of cairo. This is some sample text for testing the text printing capabilities of cairo. This is some sample text for testing the text printing capabilities of cairo. This is some sample text for testing the text printing capabilities of cairo.. ."
            },
+
+		   {">":"div", "display":"block", "color":[0.5,0.7,0.5],
+   			"float":"left", "margin":15, "width":100, "height":40,
+   			"border":{"radius":7, "width":"thin", "style":"solid", "color":"black"},
+   			"nodes":[ {">":"p",
+   							"font":{ "color":"black", "size":12, "align":"center", "lineHeight":1.4, "family":"Georgia" },
+   							"text":"This is a block Element"
+   									}
+   					]
+   		},
+
+
         {">":"circle",
              "radius":5,
        		   "color":"lightgreen",
        		   "border":{"width":"thin", "style":"solid", "color":"blue"}}
 
            ]
-     }
+     },
+	 {">":"circle",
+		  "radius":100,
+			"color":"lightgreen",
+			"border":{"width":"thin", "style":"solid", "color":"blue"}
+	},
+
+	{">":"div", "display":"block", "color":[0.7,0.5,0.5],
+		"height":40,
+		"border":{"radius":7, "width":"thin", "style":"solid", "color":"black"},
+		"nodes":[ {">":"p",
+			"font":{ "color":"black", "size":12, "align":"center", "lineHeight":1.4, "family":"Georgia" },
+			"text":"This is a block element with no width set!"
+					}
+				]
+			},
+	{">":"div", "display":"block", "color":[0.7,0.5,0.5],
+				"height":40,
+				"width":300,
+				"border":{"radius":7, "width":"thin", "style":"solid", "color":"black"},
+				"nodes":[ {">":"p",
+					"font":{ "color":"black", "size":12, "align":"center", "lineHeight":1.4, "family":"Georgia" },
+					"text":"This is a block element with the width set to 300px."
+							}
+						]
+	},
+	{">":"circle", "radius":5, "color":"pink",
+	       		   "border":{"width":"thin", "style":"solid", "color":"blue"}}
+
 ]}

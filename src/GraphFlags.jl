@@ -1,33 +1,60 @@
-export HasBorder,   BordersSame,  Clip, IsRoundBox,
-       FixedHeight,
-       FloatLeft,   FloatRight,
-       AlignBase,   AlignMiddle,
-       TextCenter,  TextRight,    TextJustify,
-       TextItalic,  TextOblique,  TextBold
+export
+        FloatLeft,   FloatRight,
+        Relative, Fixed, Absolute,
+        RowFinalized,
+        HasBorder,   BordersSame,  Clip, IsRoundBox,
+        FixedHeight,
+        DisplayBlock, DisplayInlineBlock, DisplayNone, DisplayTable, DisplayFlex,
+        LineBreakBefore, LineBreakAfter,
+        IsHidden,
+        AlignBase,   AlignMiddle,
+        TextCenter,  TextRight,    TextJustify,
+        TextItalic,  TextOblique,  TextBold,
+        IsHScroll, IsVScroll
 
-const HasBorder     = 1
-const BordersSame   = 2
-const Clip          = 3
-const IsRoundBox    = 4
-const FixedHeight   = 5
+const FloatLeft     = 1
+const FloatRight    = 2
+const RowFinalized    = 3
 
-const FloatLeft     = 11
-const FloatRight    = 12
+const Absolute      = 4
+const Relative      = 5
+const Fixed         = 6
+# position: static, relative, fixed, absolute
+const HasBorder     = 11
+const BordersSame   = 12
+const Clip          = 13
+const IsRoundBox    = 14
+const FixedHeight   = 15
+# https://developer.mozilla.org/en-US/docs/Web/CSS/display
+const DisplayBlock   = 16
+const DisplayInlineBlock   = 17
+const DisplayNone   = 18
+const DisplayTable   = 19
+const DisplayFlex   = 20
 
-const AlignBase      = 13
-const AlignMiddle    = 14
+# visibility: visible|hidden|collapse|initial|inherit;
+const IsHidden     = 21
 
-const TextCenter     = 15
-const TextRight      = 16
-const TextJustify    = 17
 
-const TextItalic     = 18
-const TextOblique    = 19
+const AlignBase      = 22
+const AlignMiddle    = 23
 
-const TextBold       = 20
+const TextCenter     = 24
+const TextRight      = 25
+const TextJustify    = 26
 
-const IsHScroll      = 21
-const IsVScroll      = 22
+const TextItalic     = 27
+const TextOblique    = 28
+
+const TextBold       = 29
+
+const IsHScroll      = 30
+const IsVScroll      = 31
+
+
+const LineBreakBefore      = 32
+const LineBreakAfter      = 33
+
 
 #.==============================================================================
 

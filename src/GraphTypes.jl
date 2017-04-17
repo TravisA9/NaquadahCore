@@ -116,6 +116,7 @@ end
 type BasicShape <: Draw
     flags::BitArray{1}
     color::Array
+    gradient::Array
     opacity::Float32
     padding::Nullable{BoxOutline}
     border::Nullable{Border}
@@ -125,10 +126,10 @@ type BasicShape <: Draw
     top::Float32
     width::Float32
     height::Float32
-    BasicShape() = new(falses(64), [.0,.0,.0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0)
+    BasicShape() = new(falses(64), [], [], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0)
 end
 function Shape()
-    return (falses(64), [.0,.0,.0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0)
+    return (falses(64), [], [], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0)
 end
 # ==============================================================================
 # ==============================================================================
@@ -136,13 +137,13 @@ end
 # ==============================================================================
 type NBox <: Draw
      @import_fields(BasicShape)
-    NBox() = new( falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0 )
+    NBox() = new( falses(64), [], [], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0 )
 end
 
 type Circle <: Draw
      @import_fields(BasicShape)
     radius::Float32
-    Circle() = new(falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0,
+    Circle() = new(falses(64), [], [], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0,
                     0,)
 end
 # Box, RoundBox, Arc, Circle, Line, Curve, Text, Ellipse
@@ -163,8 +164,10 @@ type NText <: Draw
     size::Float32
     lineHeight::Float16
     family::String
-    NText() = new(falses(64), [0,0,0], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0,
-                   "", 12, 1.4,  "Sans")
+    fill::Array
+    lineWidth::Float32
+    NText() = new(falses(64), [], [], 1, Nullable{BoxOutline}(), Nullable{Border}(), Nullable{BoxOutline}(), Nullable{Point}(),0,0,0,0,
+                   "", 12, 1.4,  "Sans", [], 1 )
 end
 #=---------------------------------=#
 type TextLine <: Draw

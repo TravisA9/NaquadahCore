@@ -80,6 +80,11 @@ end
 function getSize(text::TextLine)
     return ( text.width, text.height )
 end
+#=
+function getSize(text::TextLine)
+
+    return ( text.width, text.height )
+end =#
 
 function getSize(circle::Circle)
   border = get(circle.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))

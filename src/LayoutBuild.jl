@@ -14,6 +14,7 @@ function FinalizeRow(row)
     if row.flags[RowFinalized] == true
         return
     end
+
     # move objects up or down (withing row space) depending on layout options.
     # Be sure that the heights of all objects have been set.
     # Float the floats
@@ -25,55 +26,50 @@ function FinalizeRow(row)
   # vertical/hirizintal shift
   #..........................................
       X = 0
-  #if row.flags[TextCenter] == true
-#      X = row.space * .5
- # elseif row.flags[TextRight] == true
-#      X = row.space
-#      row.space = 0
- # end
+    for i in 1:length(row.nodes)
+        item = row.nodes[i]
+        Y = 0
 
-  for i in 1:length(row.nodes)
-    item = row.nodes[i]
-    Y = 0
+        if isa(item, TextLine)
+            shape = item.reference.shape
+        else
+            shape = item.shape
+        end
 
+        if shape.flags[Absolute] == false
 
-
-    if isa(item, TextLine)
-        TextLike = item.reference.shape
-    else
-        TextLike = item.shape
-    end
-
-    # set row height
-    if TextLike.height > row.height
-        width, height = getSize(TextLike) # TextLike.height
-        row.height = height # TextLike.height
-    end
+        # set row height
+        if shape.height > row.height
+            width, height = getSize(shape)
+            row.height = height
+        end
 
 
-            if TextLike.flags[TextCenter] == true
-                X = row.space * .5
-            elseif TextLike.flags[TextRight] == true
-                X = row.space
-                row.space = 0
-            end
+                if shape.flags[TextCenter] == true
+                    X = row.space * .5
+                elseif shape.flags[TextRight] == true
+                    X = row.space
+                    row.space = 0
+                end
 
-            TextLike.flags[AlignBase]    &&  (Y = (row.height-TextLike.height))
-            if TextLike.flags[AlignMiddle]  &&  row.height > TextLike.height
-                Y = (row.height-TextLike.height) *.5
-                println(Y)
-            end
+                shape.flags[AlignBase]    &&  (Y = (row.height - shape.height))
+                if shape.flags[AlignMiddle]  &&  row.height > shape.height
+                    Y = (row.height - shape.height) *.5
+                    println(Y)
+                end
 
 
-        MoveAll(row.nodes[i], X,Y)
+              MoveAll(row.nodes[i], X,Y)
       end
+      end
+
     #..........................................
     # float LEFT: MoveNodeToLeft(row, index)
     #..........................................
     for i in 2:length(row.nodes)
         # item = row.nodes[i].shape
           shape = getShape(row.nodes[i])
-        if shape.flags[FloatLeft] == true
+        if shape.flags[FloatLeft] == true && shape.flags[Absolute] == false
             w, h = getSize(shape)
             s = getShape(row.nodes[1])
             MoveAll(row.nodes[i], -(shape.left - s.left) ,0)
@@ -89,7 +85,7 @@ function FinalizeRow(row)
     for i in length(row.nodes):-1:1
       # row.space
       shape = getShape(row.nodes[i])
-        if shape.flags[FloatRight] == true
+        if shape.flags[FloatRight] == true && shape.flags[Absolute] == false
             w, h = getSize(shape)
             for j in (i+1):length(row.nodes)
                 row.nodes[j].shape.left -= w
@@ -106,10 +102,10 @@ end
 #======================================================================================#
 # PushToRow(node, child, l,t,w,h)
 #======================================================================================#
-function PushToRow(node, thing, l,t,w) # height not needed
+function PushToRow(document, node, thing, l,t,w) # height not needed
 
  # Get shape........
-  shape = node.shape
+ #  shape = node.shape
   if isa(thing,TextLine)
       thingShape = thing
   else
@@ -126,14 +122,31 @@ function PushToRow(node, thing, l,t,w) # height not needed
         Row(rows, l, t, w)
     end
     row = rows[end]
-
+   #.................................
     if thingShape.flags[Fixed] == true
-        println("Fixed: $(thingShape.left), $(thingShape.top), $(thingShape.width), $(thingShape.height)")
+      canvas = document.canvas
+      if thingShape.flags[Bottom] == true
+              h = height(canvas)
+              thingShape.top =  h - (thingShape.top + thingHeight)
+      else
+              thingShape.top =  h + thingShape.top
+      end
+      if thingShape.flags[Right] == true
+              w = width(canvas)
+              thingShape.left =  w - (thingShape.left + thingWidth)
+      else
+              thingShape.left =  w + thingShape.left
+      end
         push!(row.nodes, thing)
-        #drawFixed(child)
         return
     end
-
+    #.................................
+    # I think the only way to set an Absolute position is to wait until the parent is totaly finished
+     if thingShape.flags[Absolute] == true
+         node.shape.flags[HasAbsolute] = true
+         push!(row.nodes, thing)
+         return
+     end
 # Is BLOCK-type
     if thingShape.flags[DisplayBlock] == true && thingShape.width < 1
         if length(row.nodes) > 0
@@ -199,18 +212,7 @@ end
 #======================================================================================#
 #
 #======================================================================================#
-function drawFixed(node)
-    shape = node.shape
-    #if isa(thing,TextLine)
-    #    thingShape = thing
-    #else
-    #    thingShape = thing.shape
-    #end
 
-    #shape.top =
-
-
-end
 
 #======================================================================================#
 function MoveNodeToLeft(row, index)
@@ -234,6 +236,9 @@ end
 #======================================================================================#
 function MoveAll(node,x,y)
   shape = getShape(node)
+  if shape.flags[Fixed] == true
+    return
+  end
   shape.left += x # Move this object!
   shape.top  += y
     if isdefined(node, :rows) # ..it has rows of children so let's move them!
@@ -279,7 +284,7 @@ end
 #======================================================================================#
 #
 #======================================================================================#
-function textToRows(node, MyText, l, t, warn) # .rows, parentArea
+function textToRows(document, node, MyText, l, t, warn) # .rows, parentArea
       shape = node.shape
       MyTextShape = MyText.shape
       c = CairoRGBSurface(0,0);
@@ -322,7 +327,7 @@ function textToRows(node, MyText, l, t, warn) # .rows, parentArea
         if extetents[3] >= lineWidth
             te = text_extents(ctx, lastLine )
             textLine = TextLine(MyText, lastLine, lineLeft, 0, te[3], MyTextShape.height)
-            PushToRow(node, textLine, l, t, warn)
+            PushToRow(document, node, textLine, l, t, warn)
             line = words[w]
             # What's this for?
             if isPartRow == true
@@ -336,5 +341,5 @@ function textToRows(node, MyText, l, t, warn) # .rows, parentArea
     # Make sure we flush out the last row!
     te = text_extents(ctx,line )
     textLine = TextLine(MyText, line, lineLeft, 0, te[3], MyTextShape.height)
-    PushToRow(node, textLine, l, t, warn)
+    PushToRow(document, node, textLine, l, t, warn)
 end

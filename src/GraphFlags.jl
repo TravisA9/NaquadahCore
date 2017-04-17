@@ -1,6 +1,9 @@
 export
         FloatLeft,   FloatRight,
-        Relative, Fixed, Absolute,
+        Relative, Fixed, Absolute, HasAbsolute,
+        Bottom, Right,
+        HasOpacity, HasImage,
+        TextPath, LinearGrad, RadialGrad,
         RowFinalized,
         HasBorder,   BordersSame,  Clip, IsRoundBox,
         FixedHeight,
@@ -14,11 +17,17 @@ export
 
 const FloatLeft     = 1
 const FloatRight    = 2
-const RowFinalized    = 3
+const RowFinalized  = 3
 
 const Absolute      = 4
-const Relative      = 5
-const Fixed         = 6
+const HasAbsolute   = 5
+const Relative      = 6
+const Fixed         = 7
+
+const Bottom        = 8
+const Right         = 9
+
+const HasOpacity    = 10
 # position: static, relative, fixed, absolute
 const HasBorder     = 11
 const BordersSame   = 12
@@ -50,6 +59,11 @@ const TextBold       = 29
 
 const IsHScroll      = 30
 const IsVScroll      = 31
+
+const HasImage      = 34
+const TextPath      = 35
+const LinearGrad    = 36
+const RadialGrad    = 37
 
 
 const LineBreakBefore      = 32

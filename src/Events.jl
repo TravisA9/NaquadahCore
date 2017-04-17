@@ -12,7 +12,7 @@ type EventType
 end
 
 function AttatchEvents(document)
-  println(LOAD_PATH)
+#  println(LOAD_PATH)
 	    canvas = document.canvas
 
     canvas.mouse.button1press = @guarded (widget, event) -> begin
@@ -22,6 +22,7 @@ function AttatchEvents(document)
 
     canvas.mouse.button1release = @guarded (widget, event) -> begin
     ctx = getgc(widget)
+  #  w   = width(c)
            if -5 < (document.event.pressed.x - event.x) < 5 &&
               -5 < (document.event.pressed.y - event.y) < 5
              splotch(ctx,event,1.0,0.0,0.0)
@@ -30,56 +31,66 @@ function AttatchEvents(document)
     end
 
     # SEE: https://people.gnome.org/~gcampagna/docs/Gdk-3.0/Gdk.EventScroll.html
-    canvas.mouse.scroll = @guarded (widget, event) -> begin
+canvas.mouse.scroll = @guarded (widget, event) -> begin
     ctx = getgc(widget)
     node = document.children[1]
-    h   = node.shape.height
-    w   = node.shape.width
+    winHeight = height(widget)
+    Unit = 75
 
     # I am scrolling(jumping) by 30px here but Opera scrolls by about 50px
     # Opera lacks smoothness too but it seems to transition-scroll by the 50px
     # ...so using the mouse wheel it is impossible to move less than that increment.
 
-
-    if event.direction == 0
-        node.scroll.y += 30
-        MoveAll(node,0,30)
-
-        set_source_rgb(ctx, 1,1,1)
-        rectangle(ctx, 0, 0, w, h )
-        fill(ctx);
-
-        DrawContent(ctx, node)
-        reveal(widget)
-
-    else
-        node.scroll.y -= 30
-        height = node.scroll.contentHeight - node.shape.height
-        if node.scroll.y < height
-            node.scroll.y = height
-            MoveAll(node,0,height)
-        else
-            MoveAll(node,0,-30)
+    # SCROLL UP!
+    if event.direction == 0 && node.shape.top < 0
+      diff = abs(node.shape.top)
+      if diff < Unit
+        Unit = diff
+      end
+        node.scroll.y += Unit
+        VmoveAll(node, Unit)
+      # SCROLL DOWN!
+    elseif event.direction == 1 && (node.shape.top + node.shape.height) > winHeight
+        diff = (node.shape.top + node.shape.height) - winHeight
+        if diff < Unit
+          Unit = diff
         end
-
-        set_source_rgb(ctx, 1,1,1)
-        rectangle(ctx,  0,  0, w,  h )
-        fill(ctx);
-
-        DrawContent(ctx, node)
-        reveal(widget)
-
+         node.scroll.y -= Unit
+            VmoveAll(node, -Unit) # -30
     end
 
+    #set_source_rgb(ctx, 1,1,1)
+    setcolor( ctx, node.shape.color...)
+    rectangle(ctx,  0,  0, node.shape.width,  node.shape.height )
+    fill(ctx);
+
+    DrawContent(ctx, node)
+    reveal(widget)
 
     end
 
 
 
 end
-
-
-
+#======================================================================================#
+#    Similar to MoveAll() in LayoutBuild.jl
+#======================================================================================#
+function VmoveAll(node,y)
+  shape = getShape(node)
+  if shape.flags[Fixed] == true
+    return
+  end
+  shape.top  += y
+    if isdefined(node, :rows) # ..it has rows of children so let's move them!
+      for i in 1:length(node.rows)
+        row = node.rows[i]
+        row.y += y
+        for j in 1:length(row.nodes)
+            VmoveAll(row.nodes[j],y) # do the same for each child
+        end
+      end
+    end
+end
 # ======================================================================================
 # Draw a splotch
 # CALLED FROM:

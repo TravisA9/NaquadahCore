@@ -1,6 +1,8 @@
 # module NaquadahCore
 #   package code goes here
 # end # module
+defaultPage = "file:///src/SamplePages/test.json"
+global PATH = pwd() * "/data/"
 
 include("GraphDraw.jl")
 include("DomUtilities.jl")
@@ -11,8 +13,7 @@ using Gtk, Gtk.ShortNames, Cairo   # Colors
 using NaquadahDOM, Naquadraw
 
 
-defaultPage = "file:///src/SamplePages/test.json"
-global PATH = pwd() * "/data/"
+
 
 
 
@@ -31,9 +32,9 @@ function CreateLayoutTree(document, node)
 
                 # Put child into row
                 if isa(child.shape, NText) #node.shape.flags[] == true row =
-                    textToRows(node, child, l,t,w)
+                    textToRows(document, node, child, l,t,w)
                 else
-                    PushToRow(node, child, l,t,w)
+                    PushToRow(document, node, child, l,t,w)
                 end
                 # Create child's children
                 CreateLayoutTree(document, child)
@@ -48,10 +49,42 @@ function CreateLayoutTree(document, node)
         if node.shape.flags[FixedHeight] == false
             node.shape.height = node.scroll.contentHeight
         end
+        # This is to be done after the parent node's size is finalised!
+        if node.shape.flags[HasAbsolute] == true
+          # get node metrics again since the height etc. might have changed.
+          l,t,w,h = getContentBox(node.shape, getReal(node.shape)...)
+          for child in children
+            if !isa(child.shape, NText)
+                shape = child.shape
+                width,height = getSize(shape)
+                # padding, border, margin = getReal(shape)
+                if shape.flags[Absolute] == true
+                  top,left = shape.top, shape.left
+                  if shape.flags[Bottom] == true
+                        shape.top =  t + h - (height + shape.top)
+                  else
+                        shape.top =  t + shape.top
+                  end
+                  if shape.flags[Right] == true
+                        shape.left =  l + w - (width + shape.left)
+                  else
+                        shape.left =  l +  shape.left
+                  end
+                  # all children of "absolute" node need moved to correct location.
+                  # contents = child.children
+                  rows = child.rows
+                  for row in rows         # row.nodes[i]
+                    for n in row.nodes
+                      MoveAll(n, shape.left - left, shape.top - top)
+                    end
+                  end
+              end
+            end
+          end
+        end
+
+
     end
-
-    # Make sure the final size is set
-
 end
 # ======================================================================================
 function DrawANode(document)
@@ -73,7 +106,7 @@ show(c)
 end
 # ======================================================================================
 c = @Canvas()
-win = @Window("Canvas", 1000, 800)
+win = @Window("Naquadah", 1000, 600)
 push!(win, c)
 document = FetchPage(defaultPage, c)
 DrawANode(document)

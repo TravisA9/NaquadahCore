@@ -34,7 +34,7 @@ function AttatchEvents(document)
 canvas.mouse.scroll = @guarded (widget, event) -> begin
     ctx = getgc(widget)
     node = document.children[1]
-    winHeight = height(widget)
+
     Unit = 75
 
     # I am scrolling(jumping) by 30px here but Opera scrolls by about 50px
@@ -42,32 +42,65 @@ canvas.mouse.scroll = @guarded (widget, event) -> begin
     # ...so using the mouse wheel it is impossible to move less than that increment.
 
     # SCROLL UP!
-    if event.direction == 0 && node.shape.top < 0
-      diff = abs(node.shape.top)
+    if event.direction == 0 && node.scroll.y < node.shape.top # was: 0
+      diff = abs(node.scroll.y)
       if diff < Unit
         Unit = diff
       end
         node.scroll.y += Unit
-        VmoveAll(node, Unit)
+        VmoveAllChildren(node, Unit, false)
       # SCROLL DOWN!
-    elseif event.direction == 1 && (node.shape.top + node.shape.height) > winHeight
-        diff = (node.shape.top + node.shape.height) - winHeight
+  elseif event.direction == 1 && (node.scroll.contentHeight + node.scroll.y) > node.shape.height
+        diff = (node.scroll.contentHeight + node.scroll.y) - node.shape.height
         if diff < Unit
           Unit = diff
         end
          node.scroll.y -= Unit
-            VmoveAll(node, -Unit) # -30
+            VmoveAllChildren(node, -Unit, false) # -30
     end
 
     #set_source_rgb(ctx, 1,1,1)
     setcolor( ctx, node.shape.color...)
-    rectangle(ctx,  0,  0, node.shape.width,  node.shape.height )
+    rectangle(ctx,  node.shape.left,  node.shape.top, node.shape.width,  node.shape.height )
     fill(ctx);
 
-    DrawContent(ctx, node)
+    Shape = getShape(node)
+    #clipPath = (0, 0, 1000, 1000)
+    #if Shape.flags[Clip] == true
+                border = get(Shape.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+                padding = get(Shape.padding, BoxOutline(0,0,0,0,0,0))
+                clipPath = getBorderBox(Shape, border, padding)
+    #end
+
+    DrawContent(ctx, document, node, clipPath)
     reveal(widget)
 
     end
+
+
+
+end
+#======================================================================================#
+#    Similar to MoveAll() in LayoutBuild.jl
+#======================================================================================#
+function VmoveAllChildren(node, y, moveNode)
+  shape = getShape(node)
+  if shape.flags[Fixed] == true
+    return
+  end
+  if moveNode == true
+      shape.top  += y
+  end
+    if isdefined(node, :rows) # ..it has rows of children so let's move them!
+      for i in 1:length(node.rows)
+        row = node.rows[i]
+        row.y += y
+        for j in 1:length(row.nodes)
+            VmoveAllChildren(row.nodes[j],y, true) # do the same for each child
+        end
+      end
+    end
+
 
 
 

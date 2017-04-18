@@ -14,9 +14,9 @@ using NaquadahDOM, Naquadraw
 
 
 
-
-
-
+# ======================================================================================
+# ======================================================================================
+# ======================================================================================
 function CreateLayoutTree(document, node)
     isa(node.shape, NText) && return
 
@@ -88,6 +88,7 @@ function CreateLayoutTree(document, node)
 end
 # ======================================================================================
 function DrawANode(document)
+    print("Warning: you are running low on blinker fluid! This could cause your muffler bearings to run dry and overheat.")
     c = document.canvas
     node = document.children[1]
 
@@ -95,12 +96,16 @@ function DrawANode(document)
         ctx = getgc(c)
         h   = height(c)
         w   = width(c)
-       set_antialias(ctx,1)
+       #set_antialias(ctx,1)
        setWindowSize(w,h, node)
        AttatchEvents(document)
        CreateLayoutTree(document, node)
        MoveAll(node,node.scroll.x,node.scroll.y)
-       DrawContent(ctx, node)
+
+                   border = get(node.shape.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+                   padding = get(node.shape.padding, BoxOutline(0,0,0,0,0,0))
+                   clipPath = getBorderBox(node.shape, border, padding)
+       DrawContent(ctx, document, node, clipPath)
    end
 show(c)
 end
@@ -108,5 +113,5 @@ end
 c = @Canvas()
 win = @Window("Naquadah", 1000, 600)
 push!(win, c)
-document = FetchPage(defaultPage, c)
+document = FetchPage(defaultPage, c) # DomTree.jl
 DrawANode(document)

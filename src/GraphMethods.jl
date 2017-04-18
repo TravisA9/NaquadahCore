@@ -70,8 +70,8 @@ function contentOffset(padding, border, margin)
 end
 
 function getSize(box::NBox)
-  border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
-  margin = get(box.margin,  BoxOutline(0,0,0,0,0,0))
+  border  = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+  margin  = get(box.margin,  BoxOutline(0,0,0,0,0,0))
   padding = get(box.padding,  BoxOutline(0,0,0,0,0,0))
     return ( box.width  + border.width  + margin.width  + padding.width,
              box.height + border.height + margin.height + padding.height )
@@ -80,11 +80,6 @@ end
 function getSize(text::TextLine)
     return ( text.width, text.height )
 end
-#=
-function getSize(text::TextLine)
-
-    return ( text.width, text.height )
-end =#
 
 function getSize(circle::Circle)
   border = get(circle.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))

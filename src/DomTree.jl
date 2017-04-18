@@ -94,11 +94,34 @@ function FetchPage(URL::String, canvas)
             document.styles = pageContent["style"]
         end
         if haskey(pageContent, "body")
-            node.DOM = Dict( ">" => "window", "display" => "inline-block", "padding" => [10,10,10,10],
-                  "font" => Dict( "size" => 13, "family" => "Sans", "weight" => "bold", "color" => "black" )	)
-                #  , "nodes" => []
+            node.DOM = Dict( ">" => "window", "display" => "inline-block", "padding" => [0,0,0,0],
+                  "font" => Dict( "size" => 13, "family" => "Sans", "weight" => "bold", "color" => "black" ),
+                  "nodes" => []	)
+
+                controls = Dict(
+                                  ">"       => "div",
+                                  "display" => "block",
+                                  "color"   => [0.3,0.3,0.3],
+                                  "border"  => Dict( "radius"=>7, "width"=>"thin", "style"=>"solid",
+                                                     "color"=>[0.3,0.0,0.6] ),
+                                  "nodes"   => []
+                )
+                push!(node.DOM["nodes"],controls)
+
+                page = Dict(
+                                  ">"       => "div",
+                                  "display" => "block",
+                                  "color"   => [0.8,0.8,0.8],
+                                  "border"  => Dict( "width"=>"thin", "style"=>"solid",
+                                                     "color"=>[0.3,0.0,0.6] ),
+                                  "nodes"   => pageContent["body"]
+                )
+                push!(node.DOM["nodes"], page)
             #push!(node.DOM["nodes"], Dict("nodes" => pageContent["body"]))
-            node.DOM["nodes"] = pageContent["body"]
+            #node.DOM["nodes"] = pageContent["body"]
+
+            #
+            println("nodes: ",length(node.DOM["nodes"]))
         end
         # ......................................................................
         # ParseDictionary(document, node)  # maybe some extra preproccessing.

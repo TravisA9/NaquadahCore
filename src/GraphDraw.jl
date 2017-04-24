@@ -60,7 +60,7 @@ function setWindowSize(w,h, n)
   n.shape = NBox()
      n.shape.color = [1,1,1]
     # n.shape.padding = BoxOutline(0,0,0,0,0,0)
-     n.shape.border = Border(0,1, 0,0, 0,1, "solid",[.5,.5,.5,1],[0,0,0,0])
+     n.shape.border = Border(0,0, 0,0, 0,0, "solid",[.5,.5,.5,1],[0,0,0,0])
     # we need to make sure we set VP based on padding!
     n.shape.left    = 0
     n.shape.top     = 70
@@ -238,8 +238,8 @@ function DrawCircle(ctx::CairoContext, node, circle::Circle, clipPath)
 
   if circle.flags[HasImage] == true
 DOM =  node.DOM
-            #Win: path = "C:\\Users\\Coloquio 11\\.julia\\v0.5\\NaquadahCore\\src\\SamplePages\\"
-            path = "/home/travis/.julia/v0.5/NaquadahCore/src/SamplePages/"
+            path = "C:\\Users\\Coloquio 11\\.julia\\v0.5\\NaquadahCore\\src\\SamplePages\\" # Win:
+            #path = "/home/travis/.julia/v0.5/NaquadahCore/src/SamplePages/"
             if haskey(DOM, "image")
                 path = path * DOM["image"] # "Mountains.png"
             end

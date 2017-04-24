@@ -88,7 +88,7 @@ function CreateLayoutTree(document, node)
 end
 # ======================================================================================
 function DrawANode(document)
-    print("Warning: you are running low on blinker fluid! This could cause your muffler bearings to run dry and overheat.")
+    print("Warning: The muffler bearings are running dry!")
     c = document.canvas
     node = document.children[1]
 

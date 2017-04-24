@@ -40,6 +40,7 @@ type Page
              end
 end
 include("DomToLayout.jl")
+include("DomShaddow.jl")
 
 # ======================================================================================
 # Print out Dict but not children
@@ -97,31 +98,18 @@ function FetchPage(URL::String, canvas)
             node.DOM = Dict( ">" => "window", "display" => "inline-block", "padding" => [0,0,0,0],
                   "font" => Dict( "size" => 13, "family" => "Sans", "weight" => "bold", "color" => "black" ),
                   "nodes" => []	)
+                  # node.DOM / windowControls / tab
+                  # newPage / pageContent
+                  # node.DOM / windowControls / newPage / pageContent
 
-                controls = Dict(
-                                  ">"       => "div",
-                                  "display" => "block",
-                                  "color"   => [0.3,0.3,0.3],
-                                  "border"  => Dict( "radius"=>7, "width"=>"thin", "style"=>"solid",
-                                                     "color"=>[0.3,0.0,0.6] ),
-                                  "nodes"   => []
-                )
-                push!(node.DOM["nodes"],controls)
+                push!(node.DOM["nodes"], windowControls)
+                push!( windowControls["nodes"], icons)
+                push!( windowControls["nodes"], tab)
 
-                page = Dict(
-                                  ">"       => "div",
-                                  "display" => "block",
-                                  "color"   => [0.8,0.8,0.8],
-                                  "border"  => Dict( "width"=>"thin", "style"=>"solid",
-                                                     "color"=>[0.3,0.0,0.6] ),
-                                  "nodes"   => pageContent["body"]
-                )
-                push!(node.DOM["nodes"], page)
-            #push!(node.DOM["nodes"], Dict("nodes" => pageContent["body"]))
-            #node.DOM["nodes"] = pageContent["body"]
+                newPage["nodes"] = pageContent["body"]
+                push!(node.DOM["nodes"], newPage)
 
-            #
-            println("nodes: ",length(node.DOM["nodes"]))
+            # println("nodes: ",length(node.DOM["nodes"]))
         end
         # ......................................................................
         # ParseDictionary(document, node)  # maybe some extra preproccessing.

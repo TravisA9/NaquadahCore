@@ -92,6 +92,7 @@ function CreateLayoutTree(document, node)
 end
 # ======================================================================================
 function DrawANode(document)
+
     c = document.canvas
     node = document.children[1] #.children[2]
 

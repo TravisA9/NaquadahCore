@@ -17,6 +17,17 @@
 		},
 
 "body":[
+	{">":"div", "display":"block", "color":[0.7,0.5,0.5],
+		    "margin":5,
+				"height":40,
+				"width":100,
+				"border":{"radius":[7,0,0,17], "width":"thin", "style":"solid", "color":"black"},
+				"nodes":[ {">":"p",
+					"font":{ "color":"black", "size":12, "align":"center", "lineHeight":1.4, "family":"Georgia" },
+					"text":"border rad test"
+							}
+						]
+	},
 
 	{">":"div",
   	"display":"block",

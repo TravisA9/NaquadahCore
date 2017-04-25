@@ -194,8 +194,10 @@ function DrawCircle(ctx::CairoContext, node, circle::Circle, clipPath)
 
   if circle.flags[HasImage] == true
 DOM =  node.DOM
-            #path = "C:\\Users\\Coloquio 11\\.julia\\v0.5\\NaquadahCore\\src\\SamplePages\\" # Win:
-            path = "/home/travis/.julia/v0.5/NaquadahCore/src/SamplePages/"
+
+            path = "C:\\Users\\Coloquio 11\\.julia\\v0.5\\NaquadahCore\\src\\SamplePages\\" # Win:
+            #path = "/home/travis/.julia/v0.5/NaquadahCore/src/SamplePages/"
+
             if haskey(DOM, "image")
                 path = path * DOM["image"] # "Mountains.png"
             end

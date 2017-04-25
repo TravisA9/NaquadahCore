@@ -42,7 +42,9 @@ type Page
              end
 end
 include("DomToLayout.jl")
+
 include("DomShadow.jl")
+
 
 # ======================================================================================
 # Print out Dict but not children
@@ -99,6 +101,10 @@ function FetchPage(URL::String, canvas)
         if haskey(pageContent, "body")
             node.DOM = Dict( ">" => "window", "display" => "block", "padding" => [0,0,0,0],
                   "nodes" => []	)
+                  # node.DOM / windowControls / tab
+                  # newPage / pageContent
+                  # node.DOM / windowControls / newPage / pageContent
+
 
                   # node.DOM[1] / tabControls / windowControls / tab
                   # node.DOM[2] / navigation
@@ -118,6 +124,7 @@ function FetchPage(URL::String, canvas)
 
 # Page content
                 newPage["nodes"] = pageContent["body"] # add this way because it is an array!
+r
                 push!(node.DOM["nodes"], newPage)
 
             # println("nodes: ",length(node.DOM["nodes"]))

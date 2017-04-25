@@ -45,12 +45,19 @@ macro BorderBottom(box, border, padding)
     return :( $(box).height  + $(padding).height  + ($(border).height))
 end
 
-function getBorderBox(box::NBox, border, padding)
+function getBorderBox(box::Draw, border, padding)
     return ( @BorderLeft(box, border, padding), @BorderTop(box, border, padding),  # t += border.top  *.5
              @BorderRight(box, border, padding), @BorderBottom(box, border, padding)
              #box.width  + (border.width  ), box.height + (border.height )
               )
 end
+
+#=function getBorderBox(box::Circle, border, padding)
+    return ( @BorderLeft(box, border, padding), @BorderTop(box, border, padding),  # t += border.top  *.5
+             @BorderRight(box, border, padding), @BorderBottom(box, border, padding)
+             #box.width  + (border.width  ), box.height + (border.height )
+              )
+end=#
 
 function getContentBox(box::Draw, padding, border, margin)
     return ( box.left, box.top, box.width, box.height )

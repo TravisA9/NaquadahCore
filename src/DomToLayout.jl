@@ -25,10 +25,10 @@ function GetTheColor(node, DOMColor)
     return color
 end
 # ======================================================================================
-function AtributesToLayout(node)
+function AtributesToLayout(document, node)
     DOM = node.DOM
 
-
+    h, w = document.height ,document.width
 
     if haskey(DOM, ">")
       E = DOM[">"]
@@ -39,15 +39,21 @@ function AtributesToLayout(node)
       if E == "circle"
           node.shape = Circle()
       end
-      #if E == "clip"
-      #    node.shape = Circle()
-      #    node.shape.flags[Clip] = true
-      #end
       if E == "p"
           node.shape = NText()
       end
       if E == "arc"
           node.shape = Arc()
+      end
+      if E == "page"
+          node.shape = NBox()
+            node.shape.color = [1,1,1]
+            node.shape.border = Border(0,0, 0,0, 0,0, "solid",[.8,.8,.8,1],[0,0,0,0])
+            node.shape.width   = w
+            node.shape.height  =  h
+            node.shape.flags[IsVScroll] = true # IsHScroll, IsVScroll
+            node.shape.flags[FixedHeight] = true # Because it's the window!
+            node.shape.flags[Clip] = true
       end
       #.........................................................................""
       # if isa(node.shape, TextLine)
@@ -312,7 +318,6 @@ if haskey(DOM, "border")
         end
         if haskey(font, "family")
                 node.shape.family = font["family"]
-              #  println("----------------",node.shape)
         end
       end
 

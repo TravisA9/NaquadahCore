@@ -3,6 +3,7 @@
 using Cairo, Gtk, Gtk.ShortNames#, Naquadraw # Graphics,
 
 export AttatchEvents
+
 export EventType
 
 type EventType
@@ -12,17 +13,15 @@ type EventType
 end
 
 function AttatchEvents(document)
-#  println(LOAD_PATH)
 	    canvas = document.canvas
 
     canvas.mouse.button1press = @guarded (widget, event) -> begin
-        # ctx = getgc(widget)
+
         document.event.pressed = Point(event.x, event.y)
     end
 
     canvas.mouse.button1release = @guarded (widget, event) -> begin
     ctx = getgc(widget)
-  #  w   = width(c)
            if -5 < (document.event.pressed.x - event.x) < 5 &&
               -5 < (document.event.pressed.y - event.y) < 5
              splotch(ctx,event,1.0,0.0,0.0)
@@ -33,7 +32,7 @@ function AttatchEvents(document)
     # SEE: https://people.gnome.org/~gcampagna/docs/Gdk-3.0/Gdk.EventScroll.html
 canvas.mouse.scroll = @guarded (widget, event) -> begin
     ctx = getgc(widget)
-    node = document.children[1]
+    node = document.children[1].children[3] # TODO: fix! ..test to see if mouse is over object.
 
     Unit = 75
 
@@ -50,8 +49,8 @@ canvas.mouse.scroll = @guarded (widget, event) -> begin
         node.scroll.y += Unit
         VmoveAllChildren(node, Unit, false)
       # SCROLL DOWN!
-  elseif event.direction == 1 && (node.scroll.contentHeight + node.scroll.y) > node.shape.height
-        diff = (node.scroll.contentHeight + node.scroll.y) - node.shape.height
+  elseif event.direction == 1 && (node.scroll.contentHeight + node.scroll.y + node.shape.top) > node.shape.height
+        diff = (node.scroll.contentHeight + node.scroll.y + node.shape.top) - node.shape.height
         if diff < Unit
           Unit = diff
         end
@@ -67,12 +66,12 @@ canvas.mouse.scroll = @guarded (widget, event) -> begin
     Shape = getShape(node)
     #clipPath = (0, 0, 1000, 1000)
     #if Shape.flags[Clip] == true
-                border = get(Shape.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
-                padding = get(Shape.padding, BoxOutline(0,0,0,0,0,0))
-                clipPath = getBorderBox(Shape, border, padding)
+                #border = get(Shape.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+                #padding = get(Shape.padding, BoxOutline(0,0,0,0,0,0))
+                #clipPath = getBorderBox(Shape, border, padding)
     #end
 
-    DrawContent(ctx, document, node, clipPath)
+    DrawContent(ctx, document, node)
     reveal(widget)
 
     end
@@ -80,31 +79,7 @@ canvas.mouse.scroll = @guarded (widget, event) -> begin
 
 
 end
-#======================================================================================#
-#    Similar to MoveAll() in LayoutBuild.jl
-#======================================================================================#
-function VmoveAllChildren(node, y, moveNode)
-  shape = getShape(node)
-  if shape.flags[Fixed] == true
-    return
-  end
-  if moveNode == true
-      shape.top  += y
-  end
-    if isdefined(node, :rows) # ..it has rows of children so let's move them!
-      for i in 1:length(node.rows)
-        row = node.rows[i]
-        row.y += y
-        for j in 1:length(row.nodes)
-            VmoveAllChildren(row.nodes[j],y, true) # do the same for each child
-        end
-      end
-    end
 
-
-
-
-end
 #======================================================================================#
 #    Similar to MoveAll() in LayoutBuild.jl
 #======================================================================================#

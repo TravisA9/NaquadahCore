@@ -21,6 +21,8 @@ type Page
          children::Array{Element,1} # First node in a tree-like data structure representing all elements on page
          styles::Dict
          head::Dict
+         width::Float32
+         height::Float32
 
          url::Any         # URL of page
          # events::EventTypes  # All registered events
@@ -36,11 +38,13 @@ type Page
                      children::Array{Element,1} = [Element()]
                      parent = children[1]
                      children[1].parent = parent
-                 new(parent, children, Dict(), Dict(), url, falses(8), Point(0, 0), Point(0, 0), 0, 0, 0, EventType())
+                 new(parent, children, Dict(), Dict(), 0,0, url, falses(8), Point(0, 0), Point(0, 0), 0, 0, 0, EventType())
              end
 end
 include("DomToLayout.jl")
-include("DomShaddow.jl")
+
+include("DomShadow.jl")
+
 
 # ======================================================================================
 # Print out Dict but not children
@@ -95,18 +99,32 @@ function FetchPage(URL::String, canvas)
             document.styles = pageContent["style"]
         end
         if haskey(pageContent, "body")
-            node.DOM = Dict( ">" => "window", "display" => "inline-block", "padding" => [0,0,0,0],
-                  "font" => Dict( "size" => 13, "family" => "Sans", "weight" => "bold", "color" => "black" ),
+            node.DOM = Dict( ">" => "window", "display" => "block", "padding" => [0,0,0,0],
                   "nodes" => []	)
                   # node.DOM / windowControls / tab
                   # newPage / pageContent
                   # node.DOM / windowControls / newPage / pageContent
 
-                push!(node.DOM["nodes"], windowControls)
-                push!( windowControls["nodes"], icons)
-                push!( windowControls["nodes"], tab)
 
-                newPage["nodes"] = pageContent["body"]
+                  # node.DOM[1] / tabControls / windowControls / tab
+                  # node.DOM[2] / navigation
+                  # node.DOM[3] / newPage
+
+# Tabs
+                push!(node.DOM["nodes"], tabControls)
+                push!( tabControls["nodes"], JuliaIcon)
+                push!( tabControls["nodes"], tab)
+                push!( tabControls["nodes"], NewPageIcon)
+
+# Navagation
+                push!(node.DOM["nodes"], navigation)
+                push!( navigation["nodes"], icons)
+                push!( navigation["nodes"], navBar)
+                push!( navigation["nodes"], downloadIcon)
+
+# Page content
+                newPage["nodes"] = pageContent["body"] # add this way because it is an array!
+r
                 push!(node.DOM["nodes"], newPage)
 
             # println("nodes: ",length(node.DOM["nodes"]))

@@ -19,75 +19,30 @@ export
           # get calculated metrics
           getBorderBox, getContentBox, getMarginBox, getSize,
           TotalShapeWidth, TotalShapeHeight,
-          DrawANode, setWindowSize, InitializeRow,
+          DrawANode, InitializeRow,
 
           setcolor
-          include("Events.jl")
 
+          include("Events.jl")
           include("GraphFlags.jl")
 include("LayoutBuild.jl")
 # ======================================================================================
 setcolor( ctx, r, g, b, a) = set_source_rgba(ctx, r, g, b, a);
 setcolor( ctx, r, g, b) = set_source_rgb(ctx, r, g, b);
-
-# ======================================================================================
-#
-
-
-
-# ======================================================================================
-function setControls(w,h, n)
-
-
-    #=CreateDomTree(document::Page, parent::Element)
-    #CreateLayoutTree(document, node)
-        DOM = node.DOM
-  n.shape = NBox()
-    n.shape.color = [1,1,1]
-    n.shape.padding = BoxOutline(0,0,0,0,0,0)
-    n.shape.border = Border(0,1, 0,0, 0,1, "solid",[.5,.5,.5,1],[0,0,0,0])
-    n.shape.left    = 0
-    n.shape.top     = 0
-    n.shape.width   = w # S hould be window width  - controls
-    n.shape.height  = 70 # S hould be window height - controls
-    n.shape.flags[FixedHeight] = true # Because it's the window!
-    n.shape.flags[Clip] = true=#
-end
-# ======================================================================================
-#
-# ======================================================================================
-function setWindowSize(w,h, n)
-  n.shape = NBox()
-     n.shape.color = [1,1,1]
-    # n.shape.padding = BoxOutline(0,0,0,0,0,0)
-     n.shape.border = Border(0,0, 0,0, 0,0, "solid",[.5,.5,.5,1],[0,0,0,0])
-    # we need to make sure we set VP based on padding!
-    n.shape.left    = 0
-    n.shape.top     = 70
-    n.shape.width   = w # S hould be window width  - controls
-    n.shape.height  = h-70 # S hould be window height - controls
-    # IsHScroll, IsVScroll
-    n.shape.flags[IsVScroll] = true
-    n.shape.flags[FixedHeight] = true # Because it's the window!
-    n.shape.flags[Clip] = true
-end
 # ======================================================================================
 # ======================================================================================
-function DrawClippedContent(ctx, l,t,w,h)
-    rectangle(ctx,l,t,w,h )
-    clip(ctx);
-                            DrawContent(ctx, document, node)
-
-            reset_clip(ctx)
-
-end
-
-# ======================================================================================
-# ======================================================================================
-function DrawContent(ctx, document, node, clipPath)
+function DrawContent(ctx, document, node, clipPath=nothing)
   rows = node.rows
+  border = get(node.shape.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
+  padding = get(node.shape.padding, BoxOutline(0,0,0,0,0,0))
   parentArea = getContentBox(node.shape, getReal(node.shape)... )
   Shape = getShape(node)
+
+  if Shape.flags[Clip] == true
+      clipPath = getBorderBox(Shape, border, padding)
+  end
+
+
 
   for i in 1:length(rows)
       row = rows[i]
@@ -98,7 +53,6 @@ function DrawContent(ctx, document, node, clipPath)
           if row.y < (node.shape.top + node.shape.height) && node.shape.flags[DisplayNone] == false
                  isa(shape, TextLine) && DrawText(ctx, row, shape, clipPath)
                  isa(shape, Circle) && DrawCircle(ctx, child, shape, clipPath)
-                # isa(shape, Clip) && ClipCircle(ctx, clip)
                  isa(shape, NBox) &&
                    if child.shape.flags[IsRoundBox] == true
                      DrawRoundedBox(ctx, shape, clipPath)
@@ -106,17 +60,10 @@ function DrawContent(ctx, document, node, clipPath)
                      DrawBox(ctx, shape, clipPath)
                    end
 
-
                 !isa(child, TextLine) && DrawContent(ctx, document, child, clipPath)
-
 
                 l,t,r,b = parentArea
                 y = row.y + row.height
-                # Draw lines under text (Helper)
-                #setcolor(ctx,0.8,0,0);
-                #set_line_width(ctx, 1);
-                #move_to(ctx, l, y); line_to(ctx, r, y);
-                #stroke(ctx);
          end
       end
   end
@@ -136,18 +83,25 @@ function DrawContent(ctx, document, node, clipPath)
 
 
       VScroller(ctx, document, node, Shape, clipPath)
+
+  end
+  if Shape.flags[Clip] == true
+     reset_clip(ctx)
+     clipPath = nothing
   end
 #reset_clip(ctx)
 end
 # ======================================================================================
 # ======================================================================================
 function VScroller(ctx::CairoContext, document, node, shape, clipPath)
+
     canvas = document.canvas
     ctx = getgc(canvas)
     winHeight = height(canvas)
 
         border = get(shape.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
         padding = get(shape.padding, BoxOutline(0,0,0,0,0,0))
+        #clipPath = getBorderBox(shape, border, padding)
         l,t,w,h = getBorderBox(shape, border, padding)
         h/node.scroll.contentHeight
         r, b = l+w-12, t+h-12
@@ -223,8 +177,10 @@ end
 # CALLED FROM:
 # ======================================================================================
 function DrawCircle(ctx::CairoContext, node, circle::Circle, clipPath)
-    rectangle(ctx, clipPath... )
-    clip(ctx)
+    if clipPath !== nothing
+        rectangle(ctx, clipPath... )
+        clip(ctx)
+    end
     border = get(circle.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
     radius = circle.radius + (border.width*0.25)
     wide = radius - (border.width*0.25)
@@ -238,8 +194,10 @@ function DrawCircle(ctx::CairoContext, node, circle::Circle, clipPath)
 
   if circle.flags[HasImage] == true
 DOM =  node.DOM
+
             path = "C:\\Users\\Coloquio 11\\.julia\\v0.5\\NaquadahCore\\src\\SamplePages\\" # Win:
             #path = "/home/travis/.julia/v0.5/NaquadahCore/src/SamplePages/"
+
             if haskey(DOM, "image")
                 path = path * DOM["image"] # "Mountains.png"
             end
@@ -289,8 +247,10 @@ DOM =  node.DOM
           if isdefined(border, :color) && length(border.color) > 2
             setcolor( ctx, border.color...)
 
-            rectangle(ctx, clipPath... )
-            clip(ctx)
+            if clipPath !== nothing
+                rectangle(ctx, clipPath... )
+                clip(ctx)
+            end
             set_line_width(ctx, border.top);
             arc(ctx, l, t, radius, 0, 2*pi);
                   # Clippedstroke(ctx, clipPath) #stroke(ctx);
@@ -307,8 +267,10 @@ end
 # TODO: see if curveTo() will work to simplify this.
 #======================================================================================#
 function DrawBox(ctx::CairoContext, box::NBox, clipPath)
-    rectangle(ctx, clipPath... )
-    clip(ctx)
+    if clipPath !== nothing
+        rectangle(ctx, clipPath... )
+        clip(ctx)
+    end
     border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
     padding = get(box.padding, BoxOutline(0,0,0,0,0,0))
     l,t,w,h = getBorderBox(box, border, padding)
@@ -319,7 +281,6 @@ function DrawBox(ctx::CairoContext, box::NBox, clipPath)
     #rectangle(ctx,l-1,t-1,w+1,h+1 )
     #stroke(ctx);
     if box.flags[BordersSame] == true
-      print("hello")
       if isdefined(box, :color) &&  length(box.color) > 2
         rectangle(ctx,l,t,w,h )
         setcolor(ctx, box.color...)
@@ -376,8 +337,10 @@ end
 # TODO: see if curveTo() will work to simplify this.
 #======================================================================================#
 function DrawRoundedBox(ctx::CairoContext, box::NBox, clipPath)
-    rectangle(ctx, clipPath... )
-    clip(ctx)
+    if clipPath !== nothing
+        rectangle(ctx, clipPath... )
+        clip(ctx)
+    end
     border = get(box.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
     padding = get(box.padding, BoxOutline(0,0,0,0,0,0))
     l,t,w,h = getBorderBox(box, border, padding)
@@ -436,8 +399,10 @@ reset_clip(ctx)
 end
 #======================================================================================#
 function DrawText(ctx, row, node, clipPath)
-    rectangle(ctx, clipPath... )
-    clip(ctx)
+    if clipPath !== nothing
+        rectangle(ctx, clipPath... )
+        clip(ctx)
+    end
   MyText = node.reference.shape
   left = node.left
 set_antialias(ctx,6)

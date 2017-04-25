@@ -9,7 +9,7 @@ function printDict(DOM)
     #contents = []
 
        keyList = sort(collect(keys(dict)))
-       str, key, value = "","",""
+       str, key, value = "H","",""
            for k in 1:length(keyList)
              key = keyList[k]
                if isa(dict[key], Dict)
@@ -20,7 +20,7 @@ function printDict(DOM)
                if k != 1; key = ", $(key)"; end
             str =   "$(str)$(key):$(value)"
            end
-    #println(str)
+    println(str)
     # return str
 end
 

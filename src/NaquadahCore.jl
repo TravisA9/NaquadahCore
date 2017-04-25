@@ -21,14 +21,18 @@ function CreateLayoutTree(document, node)
     isa(node.shape, NText) && return
 
     node.rows  = []
-    l,t,w,h = getContentBox(node.shape, getReal(node.shape)...)
+    #if node.shape === nothing
+    #    AtributesToLayout(document, node)
+    #end
+        l,t,w,h = getContentBox(node.shape, getReal(node.shape)...)
+
     children = node.children
 
     for child in children
                 # Create rows in child if it has children (I wonder if this could be done while setting DOM? )
                 length(child.children) > 0   &&   Row(child.rows, l,t,w)
                 # Create Child's DOM
-                AtributesToLayout(child)
+                AtributesToLayout(document, child)
 
                 # Put child into row
                 if isa(child.shape, NText) #node.shape.flags[] == true row =
@@ -88,26 +92,36 @@ function CreateLayoutTree(document, node)
 end
 # ======================================================================================
 function DrawANode(document)
-    print("Warning: The muffler bearings are running dry!")
+
     c = document.canvas
-    node = document.children[1]
+    node = document.children[1] #.children[2]
 
    @guarded draw(c) do widget
+       ScrollY = 0
         ctx = getgc(c)
         h   = height(c)
         w   = width(c)
-       #set_antialias(ctx,1)
+        document.height ,document.width = h, w
+
+        if node.children[3].scroll.y < 0
+            ScrollY = node.children[3].scroll.y
+            node.children[3].scroll.y = 0
+            println("scroll ", abs(ScrollY))
+            VmoveAllChildren(node.children[3], abs(ScrollY), false)
+            #MoveAll(node,node.scroll.x, abs(ScrollY))
+        end
        setWindowSize(w,h, node)
+       AtributesToLayout(document, node)
        AttatchEvents(document)
        CreateLayoutTree(document, node)
-       MoveAll(node,node.scroll.x,node.scroll.y)
-
-                   border = get(node.shape.border,  Border(0,0,0,0,0,0, 0,[],[0,0,0,0]))
-                   padding = get(node.shape.padding, BoxOutline(0,0,0,0,0,0))
-                   clipPath = getBorderBox(node.shape, border, padding)
-       DrawContent(ctx, document, node, clipPath)
+       #println("Children: ", node.children[3].shape.height)
+       node.children[3].scroll.y = ScrollY
+       #MoveAll(node.children[3],node.children[3].scroll.x,ScrollY)
+       VmoveAllChildren(node.children[3], ScrollY, false)
+       DrawContent(ctx, document, node)
    end
 show(c)
+
 end
 # ======================================================================================
 c = @Canvas()

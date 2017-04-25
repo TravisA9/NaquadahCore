@@ -1,4 +1,17 @@
-export MoveAll
+export setWindowSize, MoveAll, VmoveAllChildren
+# ======================================================================================
+#
+# ======================================================================================
+function setWindowSize(w,h, n)
+  n.shape = NBox()
+     n.shape.color = [1,1,1]
+     n.shape.padding = BoxOutline(0,0,0,0,0,0)
+     n.shape.border = Border(0,0, 0,0, 0,0, "solid",[.5,.5,.5,1],[0,0,0,0])
+     n.shape.left    = 0
+     n.shape.top     = 0
+     n.shape.width   = w # S hould be window width  - controls
+     n.shape.height  = h # S hould be window height - controls
+end
 #======================================================================================#
 function getShape(item)
       if isa(item, TextLine)
@@ -55,7 +68,6 @@ function FinalizeRow(row)
                 shape.flags[AlignBase]    &&  (Y = (row.height - shape.height))
                 if shape.flags[AlignMiddle]  &&  row.height > shape.height
                     Y = (row.height - shape.height) *.5
-                    println(Y)
                 end
 
 
@@ -229,6 +241,27 @@ function MoveNodeToRight(row, index)
     row.nodes[n] = row.nodes[n+1]
   end
   row.nodes[end] = node
+end
+#======================================================================================#
+#    Similar to MoveAll() in LayoutBuild.jl
+#======================================================================================#
+function VmoveAllChildren(node, y, moveNode)
+  shape = getShape(node)
+  if shape.flags[Fixed] == true
+    return
+  end
+  if moveNode == true
+      shape.top  += y
+  end
+    if isdefined(node, :rows) # ..it has rows of children so let's move them!
+      for i in 1:length(node.rows)
+        row = node.rows[i]
+        row.y += y
+        for j in 1:length(row.nodes)
+            VmoveAllChildren(row.nodes[j],y, true) # do the same for each child
+        end
+      end
+    end
 end
 #======================================================================================#
 #    This is only to translate a shape with all children by x,y
